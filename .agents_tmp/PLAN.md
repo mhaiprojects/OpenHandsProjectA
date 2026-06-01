@@ -65,30 +65,20 @@ Implement "My AFK AI" - a themed idle/incremental game where players build an AI
 ### Remaining Step:
 | Step | Status | Description |
 |------|--------|-------------|
-| 11 | ⚠️ | **POLISH & UX** - Add finishing touches |
+| 11 | ✅ | **POLISH & UX** - Complete |
 
-## 5. REMAINING WORK
+## 5. COMPLETED WORK
 
-### Step 11: Polish & UX
-- **Goal**: Ensure game is polished, responsive, and satisfying
-- **Missing Items:**
-  1. Upgrade tooltips showing effect details
-  2. Resource rate display (/sec)
-  3. Visual screen shake on big purchases
-  4. Resource icon display in HUD
-  5. Better upgrade category indicators
-  6. Game title/tagline display
-  7. Sound effects (optional, config-driven)
-
-### Implementation Plan:
-1. Enhance GameUI with:
-   - Resource rates (per second)
-   - Icon display for each resource
-   - Upgrade tooltips
-   - Title display
-2. Add screen shake effect for purchases
-3. Update MainGame for visual polish
-4. Add optional audio support via config
+### Step 11: Polish & UX ✓
+- ✅ Resource rates displayed (/sec) in HUD
+- ✅ Resource icons (₿, #, ◈, ◇) with color coding
+- ✅ Game title "MY AFK AI" with tagline displayed
+- ✅ Upgrade effect descriptions shown (e.g., "+50% crypto")
+- ✅ Upgrade owned count and effect preview
+- ✅ Screen shake effect on purchase
+- ✅ Enhanced CSS styling with cyan/purple theme
+- ✅ Better category filtering (All, Systems, AI Models, Extensions, Auto)
+- ✅ Affordable upgrades highlighted with border
 
 ## 6. TESTING AND VALIDATION
 

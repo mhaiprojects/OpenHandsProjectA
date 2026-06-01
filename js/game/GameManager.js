@@ -2,7 +2,7 @@
  * GameManager - Orchestrates game state, resources, upgrades, and idle loop
  * Central hub for game logic, communicates with EventBus
  */
-import { eventBus } from './EventBus.js';
+import { eventBus } from '../core/EventBus.js';
 
 export class GameManager {
     constructor(configManager, saveManager) {

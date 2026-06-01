@@ -26,10 +26,15 @@ export class MainGame extends Phaser.Scene {
         const configManager = this.registry.get('configManager');
         const assetManager = this.registry.get('assetManager');
 
-        // Create textures from loaded SVG assets
-        assetManager.createAllPhaserTextures(this).then(() => {
-            this.setupScene();
-        });
+        // Set up scene immediately, regardless of asset loading
+        this.setupScene();
+
+        // Try to create textures from loaded SVG assets (async, non-blocking)
+        if (assetManager && assetManager.createAllPhaserTextures) {
+            assetManager.createAllPhaserTextures(this).catch(err => {
+                console.warn('MainGame: Could not create textures from SVGs:', err);
+            });
+        }
 
         // Listen for click events from GameManager
         eventBus.on('game:click', (data) => {
@@ -47,8 +52,8 @@ export class MainGame extends Phaser.Scene {
      */
     setupScene() {
         const configManager = this.registry.get('configManager');
-        const gameConfig = configManager.get('game');
-
+        const gameConfig = configManager ? configManager.get('game') : null;
+        
         // Create background decorations
         this.createBackground();
 
