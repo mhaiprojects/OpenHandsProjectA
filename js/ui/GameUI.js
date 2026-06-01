@@ -215,8 +215,13 @@ export function createGameUI(containerId) {
                 <!-- Top HUD -->
                 <div class="top-hud">
                     <div class="hud-left">
-                        <span class="game-title">MY AFK AI</span>
-                        <span class="game-tagline">Build your AI empire</span>
+                        <span class="game-logo">🤖</span>
+                        <div class="game-header">
+                            <span class="game-title">MY AFK AI</span>
+                            <span class="game-tagline">Build your AI empire</span>
+                        </div>
+                        
+                        <div class="hud-divider"></div>
                         
                         <div class="hud-resources">
                             <div v-for="(res, id) in resources" :key="id" 
