@@ -1,103 +1,252 @@
-# 1. OBJECTIVE
+# Idle Progressive JS Game Framework - "My AFK AI"
 
-Implement "My AFK AI" - a themed idle/incremental game where players build an AI empire, recruit AI models, and install extensions to generate cryptocurrency as the primary currency.
+## 1. OBJECTIVE
 
-## 2. CONTEXT SUMMARY
+Build **"My AFK AI"** - a themed idle/incremental game where players build an AI empire, recruit AI models, and install extensions to generate cryptocurrency. The game must be fully playable, modifiable via JSON configs, and run without any build system.
 
-**Game Theme:** My AFK AI - Build your AI empire, earn crypto while you sleep
+---
 
-**Core Stack:**
-- **Phaser IO 3.x**: 2D game engine via CDN (ES module)
-- **Vue 3 CDN**: UI framework via CDN (no npm)
-- **Vanilla JS/ES Modules**: No bundler, no TypeScript, runs directly in browser
-- **Fetch API**: Load JSON configs at runtime
+## 2. DO'S ✅
 
-**Current Implementation Status:**
-- ✅ Framework complete (EventBus, ConfigManager, AssetManager, SaveManager)
-- ✅ Game engine ready (Phaser MainGame scene, GameManager)
-- ✅ UI overlay ready (Vue-based HUD and Shop)
-- ✅ "My AFK AI" themed content (4 currencies, 12 upgrades, 16 sprites)
-- ⚠️ Polish & UX needs completion (Step 11 remaining)
+### Core Architecture DO'S
+| Requirement | Implementation |
+|-------------|---------------|
+| Use Phaser IO 3.x | Load via CDN ES module |
+| Use Vue 3 | Load via CDN for reactive UI |
+| Load dependencies as ES modules | `<script type="module">` tags |
+| Store ALL game data in JSON | /config/*.json files |
+| Make all visual assets configurable | sprites.json mappings |
+| Implement EventBus | Pub/sub for Phaser↔Vue |
+| Use localStorage for saves | Auto-save every 30s |
+| Support offline progress | Calculate elapsed time × rates |
+| Use SVG for sprites | Scalable, low-res graphics |
+| Implement exponential cost scaling | cost × multiplier^n |
 
-**Directory Structure:**
+### Gameplay DO'S
+| Feature | Requirement |
+|---------|-------------|
+| Click mechanic | With visual feedback (particles, floating text) |
+| Idle generation | Auto-income per second |
+| Multiple currencies | 4 currencies minimum |
+| Multiple upgrade types | 10+ upgrades across categories |
+| Progression system | Unlock tiers as you advance |
+| Visual polish | Screen shake, number formatting, icons |
+| Responsive UI | Show rates (/sec) and owned counts |
+
+### Technical DO'S
+| Requirement | Solution |
+|-------------|-----------|
+| Zero build system | Runs directly in browser |
+| No npm | Pure HTML + JS + JSON |
+| All content in JSON | /config/*.json |
+| All sprites in SVG | /assets/sprites/*.svg |
+| Edit → refresh workflow | No compilation needed |
+
+---
+
+## 3. DON'TS ❌
+
+### Architecture DON'TS
+| Prohibition | Reason |
+|-------------|--------|
+| ❌ No npm, Webpack, Vite, or any bundler | Zero-build requirement |
+| ❌ No TypeScript | Vanilla JavaScript only |
+| ❌ No hardcoded game content | All in JSON configs |
+| ❌ No canvas for UI | Use Vue for overlays |
+| ❌ No server required | Open index.html directly |
+
+### Content DON'TS
+| Prohibition | Reason |
+|-------------|--------|
+| ❌ No hardcoded sprite references in JS | Map via sprites.json |
+| ❌ No hardcoded upgrade costs/effects | Define in upgrades.json |
+| ❌ No hardcoded currency types | Define in resources.json |
+| ❌ No hardcoded game title/text | Define in game.json |
+
+### Code DON'TS
+| Prohibition | Reason |
+|-------------|--------|
+| ❌ No direct Phaser↔Vue coupling | Use EventBus |
+| ❌ No `var` keywords | Use `const`/`let` |
+| ❌ No callbacks where async/await fits | Modern syntax |
+| ❌ No complex object serialization | JSON only |
+
+---
+
+## 4. CONTEXT SUMMARY
+
+### Core Stack
 ```
-/index.html         - Main entry, loads all modules via CDN
-/config            - JSON configuration files (game.json, resources.json, etc.)
-/assets/sprites     - SVG sprite files (16 themed sprites)
-/js
-  /core             - EventBus, ConfigManager, AssetManager, SaveManager
-  /game             - Phaser scenes and game logic (MainGame.js, GameManager.js)
-  /ui               - Vue components (GameUI.js)
+Browser
+├── index.html (loads everything via CDN)
+├── Phaser 3.x (CDN) │ Vue 3 (CDN)
+│   ├─ Game Canvas   │   ├─ HUD Overlay
+│   ├─ Clickables     │   ├─ Shop Panel
+│   └─ Particles      │   └─ Resource Display
+├── EventBus.js ← Bridges Phaser ↔ Vue
+├── ConfigManager.js ← Loads /config/*.json
+├── AssetManager.js ← Loads /assets/sprites/*.svg
+├── SaveManager.js ← localStorage
+└── GameManager.js ← Game logic
 ```
 
-## 3. APPROACH OVERVIEW
+### Directory Structure
+```
+/index.html                     # Main entry
+/js/core/
+  ├── EventBus.js              # Pub/sub
+  ├── ConfigManager.js         # JSON loader
+  ├── AssetManager.js          # SVG loader
+  └── SaveManager.js           # Persistence
+/js/game/
+  ├── MainGame.js              # Phaser scene
+  └── GameManager.js           # Game logic
+/js/ui/
+  └── GameUI.js               # Vue UI
+/config/                        # JSON configs
+  ├── game.json               # Title, resolution
+  ├── resources.json          # Currencies
+  ├── upgrades.json           # Upgrades
+  └── sprites.json            # Sprite mappings
+/assets/sprites/               # SVG sprites (16)
+```
 
-**Zero-Build Philosophy:**
-1. **No npm, no package.json, no node_modules**
-2. **CDN for dependencies**: Phaser and Vue loaded via ES module CDN links
-3. **Direct browser execution**: ES modules work natively in modern browsers
-4. **Fetch for assets**: JSON configs and SVG files loaded at runtime
-5. **Zero compilation**: Edit JS files directly, refresh browser
+### Game Content
+- **4 Currencies**: Crypto (₿), Compute (#), Storage (◈), Credits (◇)
+- **12 Upgrades**: Basic CPU, Advanced GPU, Neural Net, LLM, RAG System, Memory, Storage, API Access, Parallel Processing, Quantum Core, Auto Trainer, Script Kiddie
+- **4 Categories**: Systems, AI Models, Extensions, Automation
+- **16 Sprites**: SVG icons for all elements
 
-**Key Principles:**
-- Zero hardcoded game content in JS files
-- All visual assets configurable via `sprites.json`
-- Modular upgrade/resource systems
-- Save/load via localStorage with JSON serialization
-- Data-driven game design via JSON configs
+---
 
-## 4. IMPLEMENTATION STATUS
+## 5. IMPLEMENTATION STEPS
 
-### Completed Steps:
-| Step | Status | Description |
-|------|--------|-------------|
-| 1 | ✅ | HTML Entry Point - "My AFK AI" themed |
-| 2 | ✅ | Event System - EventBus pub/sub |
-| 3 | ✅ | Configuration System - ConfigManager |
-| 4 | ✅ | SVG Asset System - AssetManager |
-| 5 | ✅ | Game Config JSON - 4 currencies, 12 upgrades |
-| 6 | ✅ | Phaser Scene - MainGame with AI orb clicker |
-| 7 | ✅ | Game Manager - resource generation, upgrades |
-| 8 | ✅ | Vue UI - HUD with resources, Shop overlay |
-| 9 | ✅ | Save/Load System - SaveManager, auto-save |
-| 10 | ✅ | Demo Game - "My AFK AI" complete |
+| Step | File | Purpose | Status |
+|------|------|---------|--------|
+| 1 | /index.html | Load Phaser + Vue via CDN | ✅ |
+| 2 | /js/core/EventBus.js | Pub/sub for Phaser↔Vue | ✅ |
+| 3 | /js/core/ConfigManager.js | Load JSON configs | ✅ |
+| 4 | /js/core/AssetManager.js | Convert SVG to textures | ✅ |
+| 5 | /config/*.json | game, resources, upgrades, sprites | ✅ |
+| 6 | /js/game/MainGame.js | Clickable AI Orb, particles | ✅ |
+| 7 | /js/game/GameManager.js | Resources, upgrades, idle loop | ✅ |
+| 8 | /js/ui/GameUI.js | HUD + Shop (Vue) | ✅ |
+| 9 | /js/core/SaveManager.js | localStorage persistence | ✅ |
+| 10 | /assets/sprites/*.svg | 16 themed SVG sprites | ✅ |
+| 11 | All files | Polish: formatting, shake, UX | ✅ |
 
-### Remaining Step:
-| Step | Status | Description |
-|------|--------|-------------|
-| 11 | ✅ | **POLISH & UX** - Complete |
+---
 
-## 5. COMPLETED WORK
+## 6. CONFIGURATION SPECIFICATIONS
 
-### Step 11: Polish & UX ✓
-- ✅ Resource rates displayed (/sec) in HUD
-- ✅ Resource icons (₿, #, ◈, ◇) with color coding
-- ✅ Game title "MY AFK AI" with tagline displayed
-- ✅ Upgrade effect descriptions shown (e.g., "+50% crypto")
-- ✅ Upgrade owned count and effect preview
-- ✅ Screen shake effect on purchase
-- ✅ Enhanced CSS styling with cyan/purple theme
-- ✅ Better category filtering (All, Systems, AI Models, Extensions, Auto)
-- ✅ Affordable upgrades highlighted with border
+### All Content in JSON
 
-## 6. TESTING AND VALIDATION
+| Config File | Content | CANNOT Hardcode |
+|-------------|---------|-----------------|
+| game.json | Title, resolution, FPS | Title, tagline, sizes |
+| resources.json | Currency types, icons | Currency names, rates |
+| upgrades.json | Upgrade costs, effects | Costs, multipliers, names |
+| sprites.json | Sprite file paths | Any visual asset |
 
-**Success Criteria:**
-- Game is immediately playable upon opening index.html
-- Clicking generates visible resource gain with feedback
-- 4 currencies displayed with icons and rates
-- 12 upgrades purchasable across 4 categories
-- Upgrade costs scale properly
-- Idle generation works
-- Save/load preserves exact game state
-- All visuals load from JSON configs
+**Changing any JSON must NOT require code changes**
 
-**Validation Steps:**
-1. Open index.html in browser
-2. Verify AI orb clickable with glow effect
-3. Click orb → Crypto increases with "+Crypto" feedback
-4. Check HUD shows all 4 currencies with rates
-5. Purchase "Basic CPU" upgrade → verify effect
-6. Watch resources auto-generate over time
-7. Refresh page → verify state restored
-8. Test Shop categories: Systems, AI Models, Extensions, Automation
+---
+
+## 7. VALIDATION CHECKLIST
+
+### Pre-Launch Verification
+- [ ] Open index.html directly (file:// protocol)
+- [ ] Canvas renders at configured resolution
+- [ ] No console errors
+- [ ] All 4 currencies visible in HUD
+- [ ] AI Orb visible and glowing
+
+### Gameplay Verification
+- [ ] Click AI Orb → "+Crypto" appears
+- [ ] Crypto value increases on click
+- [ ] Shop opens with button click
+- [ ] 12 upgrades visible across categories
+- [ ] Can purchase "Basic CPU" with crypto
+- [ ] Compute currency increases over time
+- [ ] Upgrade costs increase after purchase
+
+### Persistence Verification
+- [ ] Refresh page → state fully restored
+- [ ] Leave for 1 hour → resources earned
+- [ ] Clear cache → reset game
+
+### Config Verification
+- [ ] Change game title in game.json → appears
+- [ ] Change upgrade cost in upgrades.json → applied
+- [ ] Change sprite path in sprites.json → new sprite shown
+- [ ] Add new currency in resources.json → appears in HUD
+
+---
+
+## 8. FILE MANIFEST
+
+### Required Files
+```
+/index.html                    ← Main entry point
+/js/core/EventBus.js          ← Event system
+/js/core/ConfigManager.js      ← JSON loader
+/js/core/AssetManager.js      ← SVG loader
+/js/core/SaveManager.js        ← Persistence
+/js/game/MainGame.js          ← Phaser scene
+/js/game/GameManager.js       ← Game logic
+/js/ui/GameUI.js              ← Vue UI
+/config/game.json             ← Game settings
+/config/resources.json        ← Currencies
+/config/upgrades.json         ← Upgrades
+/config/sprites.json          ← Sprite mappings
+/assets/sprites/*.svg          ← Sprite files (16)
+```
+
+### Forbidden Files (DO NOT CREATE)
+```
+❌ package.json
+❌ node_modules/
+❌ vite.config.js
+❌ webpack.config.js
+❌ tsconfig.json
+❌ Any build scripts
+```
+
+---
+
+## 9. QUICK REFERENCE
+
+### Run the Game
+```
+Open index.html in browser (no server needed)
+```
+
+### Modify the Game
+| What to Change | Where to Edit |
+|----------------|---------------|
+| Title | config/game.json → title |
+| Currencies | config/resources.json |
+| Upgrades | config/upgrades.json |
+| Sprites | config/sprites.json |
+| Costs | config/upgrades.json → baseCost |
+| Effects | config/upgrades.json → effect |
+
+### Add New Content
+1. Create SVG in `/assets/sprites/`
+2. Add entry to `sprites.json`
+3. Add upgrade to `upgrades.json`
+4. Refresh browser
+
+---
+
+## 10. SUCCESS CRITERIA
+
+| Criteria | Test |
+|----------|------|
+| Zero build | Open index.html with no server |
+| Playable | Click orb → gain resources |
+| Upgradeable | Buy upgrade → see effect |
+| Saveable | Refresh → progress kept |
+| Configurable | Edit JSON → game changes |
+| Themed | "My AFK AI" identity clear |
+| Polished | No lag, clear feedback |
