@@ -1,0 +1,38 @@
+{
+    "resources": [
+        {
+            "id": "coins",
+            "name": "Gold Coins",
+            "icon": "coin",
+            "baseRate": 1,
+            "rateMultiplier": 1.0,
+            "clickValue": 1,
+            "startingAmount": 0,
+            "maxAmount": null,
+            "color": "#ffd700"
+        },
+        {
+            "id": "gems",
+            "name": "Precious Gems",
+            "icon": "gem",
+            "baseRate": 0.1,
+            "rateMultiplier": 1.0,
+            "clickValue": 5,
+            "startingAmount": 0,
+            "maxAmount": null,
+            "color": "#ff69b4"
+        },
+        {
+            "id": "dust",
+            "name": "Magic Dust",
+            "icon": "dust",
+            "baseRate": 0.01,
+            "rateMultiplier": 1.0,
+            "clickValue": 10,
+            "startingAmount": 0,
+            "maxAmount": null,
+            "color": "#9370db"
+        }
+    ],
+    "displayOrder": ["coins", "gems", "dust"]
+}

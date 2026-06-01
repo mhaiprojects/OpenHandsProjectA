@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idle Game Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        #game-canvas {
+            display: block;
+        }
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #ui-overlay > * {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="ui-overlay"></div>
+    </div>
+
+    <script type="module">
+        import { eventBus } from './js/core/EventBus.js';
+        import { ConfigManager } from './js/core/ConfigManager.js';
+        import { AssetManager } from './js/core/AssetManager.js';
+        import { SaveManager } from './js/core/SaveManager.js';
+        import { GameManager } from './js/game/GameManager.js';
+        import { GameUI } from './js/ui/GameUI.js';
+        import { MainGame } from './js/game/MainGame.js';
+        import Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.esm.js';
+
+        class Game {
+            constructor() {
+                this.configManager = null;
+                this.assetManager = null;
+                this.saveManager = null;
+                this.gameManager = null;
+                this.ui = null;
+                this.phaserGame = null;
+            }
+
+            async init() {
+                // Initialize managers
+                this.configManager = new ConfigManager();
+                this.saveManager = new SaveManager();
+
+                // Load configurations
+                await this.configManager.loadAll();
+
+                // Initialize asset manager
+                this.assetManager = new AssetManager(this.configManager);
+
+                // Load assets
+                await this.assetManager.loadAll();
+
+                // Initialize game manager
+                const gameConfig = this.configManager.get('game');
+                this.gameManager = new GameManager(
+                    this.configManager,
+                    this.saveManager
+                );
+
+                // Restore saved state or start fresh
+                const savedState = this.saveManager.load();
+                if (savedState) {
+                    this.gameManager.restoreState(savedState);
+                }
+
+                // Create Phaser game
+                this.phaserGame = new Phaser.Game({
+                    type: Phaser.AUTO,
+                    width: gameConfig.resolution.width,
+                    height: gameConfig.resolution.height,
+                    parent: 'game-container',
+                    backgroundColor: gameConfig.backgroundColor,
+                    scene: [MainGame],
+                    callbacks: {
+                        postBoot: (game) => {
+                            // Inject asset manager into game registry
+                            game.registry.set('assetManager', this.assetManager);
+                            game.registry.set('configManager', this.configManager);
+                        }
+                    }
+                });
+
+                // Create Vue UI
+                this.ui = new GameUI(this.gameManager, '#ui-overlay');
+
+                // Connect Phaser click events to GameManager
+                eventBus.on('main_game:click', (data) => {
+                    this.gameManager.handleClick(data);
+                });
+
+                // Start game systems
+                this.gameManager.start();
+
+                // Auto-save every 30 seconds
+                setInterval(() => {
+                    this.gameManager.save();
+                }, 30000);
+            }
+        }
+
+        // Start the game when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const game = new Game();
+            game.init().catch(console.error);
+        });
+    </script>
+</body>
+</html>

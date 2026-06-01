@@ -1,0 +1,67 @@
+{
+    "sprites": {
+        "coin": {
+            "path": "coin.svg",
+            "width": 64,
+            "height": 64,
+            "animations": []
+        },
+        "gem": {
+            "path": "gem.svg",
+            "width": 64,
+            "height": 64,
+            "animations": []
+        },
+        "dust": {
+            "path": "dust.svg",
+            "width": 48,
+            "height": 48,
+            "animations": []
+        },
+        "robot": {
+            "path": "robot.svg",
+            "width": 80,
+            "height": 80,
+            "animations": []
+        },
+        "hand": {
+            "path": "hand.svg",
+            "width": 64,
+            "height": 64,
+            "animations": []
+        },
+        "pickaxe": {
+            "path": "pickaxe.svg",
+            "width": 64,
+            "height": 64,
+            "animations": []
+        },
+        "crystal": {
+            "path": "crystal.svg",
+            "width": 64,
+            "height": 64,
+            "animations": []
+        },
+        "main_clicker": {
+            "path": "main_clicker.svg",
+            "width": 128,
+            "height": 128,
+            "animations": [
+                {
+                    "name": "idle",
+                    "startFrame": 0,
+                    "endFrame": 0,
+                    "frameRate": 1,
+                    "loop": true
+                },
+                {
+                    "name": "click",
+                    "startFrame": 0,
+                    "endFrame": 2,
+                    "frameRate": 10,
+                    "loop": false
+                }
+            ]
+        }
+    }
+}

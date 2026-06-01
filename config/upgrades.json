@@ -1,0 +1,133 @@
+{
+    "upgradeCategories": [
+        {
+            "id": "production",
+            "name": "Production",
+            "description": "Increase resource generation"
+        },
+        {
+            "id": "click",
+            "name": "Click Power",
+            "description": "Increase click rewards"
+        },
+        {
+            "id": "automation",
+            "name": "Automation",
+            "description": "Automate resource generation"
+        }
+    ],
+    "upgrades": [
+        {
+            "id": "auto_clicker",
+            "name": "Auto Clicker",
+            "description": "Automatically clicks once per second",
+            "category": "automation",
+            "icon": "robot",
+            "cost": {
+                "resource": "coins",
+                "base": 50,
+                "scaling": 1.5,
+                "owned": 0
+            },
+            "effect": {
+                "type": "click",
+                "value": 1,
+                "interval": 1000
+            },
+            "maxOwned": 10,
+            "unlockRequirement": {
+                "resource": "coins",
+                "minAmount": 25
+            }
+        },
+        {
+            "id": "click_boost_1",
+            "name": "Golden Touch",
+            "description": "Doubles click value for all resources",
+            "category": "click",
+            "icon": "hand",
+            "cost": {
+                "resource": "coins",
+                "base": 100,
+                "scaling": 2.0,
+                "owned": 0
+            },
+            "effect": {
+                "type": "click_multiplier",
+                "value": 2
+            },
+            "maxOwned": 3,
+            "unlockRequirement": null
+        },
+        {
+            "id": "production_boost_1",
+            "name": "Efficient Mining",
+            "description": "Increases resource generation by 50%",
+            "category": "production",
+            "icon": "pickaxe",
+            "cost": {
+                "resource": "gems",
+                "base": 10,
+                "scaling": 1.8,
+                "owned": 0
+            },
+            "effect": {
+                "type": "rate_multiplier",
+                "resource": "coins",
+                "value": 1.5
+            },
+            "maxOwned": 5,
+            "unlockRequirement": {
+                "resource": "coins",
+                "minAmount": 200
+            }
+        },
+        {
+            "id": "dust_generator",
+            "name": "Dust Collector",
+            "description": "Generates magic dust over time",
+            "category": "automation",
+            "icon": "crystal",
+            "cost": {
+                "resource": "coins",
+                "base": 500,
+                "scaling": 2.5,
+                "owned": 0
+            },
+            "effect": {
+                "type": "generate",
+                "resource": "dust",
+                "value": 0.1,
+                "interval": 1000
+            },
+            "maxOwned": 20,
+            "unlockRequirement": {
+                "resource": "coins",
+                "minAmount": 250
+            }
+        },
+        {
+            "id": "gem_finder",
+            "name": "Gem Finder",
+            "description": "Increases gem generation rate",
+            "category": "production",
+            "icon": "gem",
+            "cost": {
+                "resource": "dust",
+                "base": 50,
+                "scaling": 1.6,
+                "owned": 0
+            },
+            "effect": {
+                "type": "rate_multiplier",
+                "resource": "gems",
+                "value": 2
+            },
+            "maxOwned": 5,
+            "unlockRequirement": {
+                "resource": "gems",
+                "minAmount": 5
+            }
+        }
+    ]
+}

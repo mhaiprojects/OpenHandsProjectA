@@ -1,0 +1,19 @@
+{
+    "name": "Idle Game Framework Demo",
+    "version": "1.0.0",
+    "resolution": {
+        "width": 800,
+        "height": 600
+    },
+    "backgroundColor": "#16213e",
+    "targetFPS": 60,
+    "startTime": 0,
+    "tickRate": 1000,
+    "idleMultiplier": 1.0,
+    "maxOfflineTime": 86400,
+    "clickFeedback": {
+        "enabled": true,
+        "duration": 200,
+        "color": "#00ff88"
+    }
+}
