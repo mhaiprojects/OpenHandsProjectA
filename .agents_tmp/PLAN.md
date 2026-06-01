@@ -74,24 +74,48 @@ CODE:
 4. ARCHITECTURE OVERVIEW
 ================================================================
 
-BROWSER STRUCTURE:
-- index.html loads Vue, animate.css, and modules
-- Vue App contains all UI components
-- Game Loop (requestAnimationFrame) handles tick updates
-- EventBus enables component communication
+LAYOUT STRUCTURE:
 
-VUE APP COMPONENTS:
-- HUD (resource display)
-- Game Area (clickable elements)
-- Shop (modal overlay)
-- Achievements panel
-- Prestige panel
++------------------------------------------------------------------+
+|                      TOP HUD (clickable)                          |
+|   [Resources] [Rates] [Modifiers] -> Opens details page           |
++------------------------------------------------------------------+
+|        |                                                         |
+|  NAV   |                    GAME CONTAINER                       |
+|  BAR   |                                                         |
+| [Home] |  +--------------------------------------------------+  |
+| [Shop] |  |                                                   |  |
+| [Prest]|  |           ACTIVE PANEL CONTENT                   |  |
+| [Achv] |  |                                                   |  |
+| [Sets] |  |    (Home: CPU Core clicker)                       |  |
+|        |  |    (Shop: Upgrades)                               |  |
+|        |  |    (Prestige: Reboot options)                      |  |
+|        |  |    (Achievements: Milestones)                      |  |
+|        |  |    (Settings: Config)                             |  |
+|        |  |                                                   |  |
+|        |  +--------------------------------------------------+  |
+|        |                                                         |
+|        +---------------------------------------------------------+
+|                        ACTION BAR (bottom)                        |
+|   [Slot1] [Slot2] [Slot3] [Slot4] [Slot5] (for later use)       |
++------------------------------------------------------------------+
 
-GAME LOGIC:
-- GameState manages resources and upgrades
-- ConfigManager loads JSON configs
-- SaveManager handles localStorage
-- Offline progress calculation
+NAV BAR (Left Side):
+- Collapsible (icon only when collapsed, icon + label when expanded)
+- Home (default active)
+- Shop
+- Prestige
+- Achievements
+- Settings
+
+GAME CONTAINER (Center):
+- Main render area for active panel
+- Home panel: CPU Core clicker with pulsating animation
+- Other panels render their respective content
+
+ACTION BAR (Bottom):
+- 5 horizontal slots for future use (abilities, items, shortcuts)
+- Styled but functional hooks for later implementation
 
 ================================================================
 5. DIRECTORY STRUCTURE
@@ -99,7 +123,7 @@ GAME LOGIC:
 
 /index.html                 Main entry point
 /css/
-  game.css                  Main styles
+  game.css                  Main styles (layout, nav, action bar)
   animations.css            Animate.css customizations
 /js/
   core/
@@ -111,7 +135,16 @@ GAME LOGIC:
     GameLoop.js             requestAnimationFrame loop
   ui/
     GameUI.js               Vue app and components
-    ClickableSprite.js      Clickable element component
+    TopHUD.js               Clickable resource display
+    NavBar.js               Left collapsible navigation
+    GameContainer.js        Center panel area
+    ActionBar.js            Bottom action slots
+    DetailsModal.js         Full-width income/modifier modal
+    HomePanel.js            CPU Core clicker panel
+    ShopPanel.js            Upgrade panel
+    PrestigePanel.js        Reboot panel
+    AchievementsPanel.js    Milestones panel
+    SettingsPanel.js        Config panel
 /config/
   game.json                 Game settings
   resources.json            Currency definitions
@@ -120,7 +153,7 @@ GAME LOGIC:
   prestige.json            Prestige/reboot settings
   sprites.json              Sprite mappings
 /assets/sprites/
-  ai-orb.svg                Main clickable
+  cpu-core.svg              Pulsating clickable (home)
   *.svg                     All other sprites
 
 ================================================================
@@ -176,13 +209,15 @@ STEP 1: index.html
 - NO inline styles or scripts
 
 STEP 2: css/game.css
-- Reset styles, game container, HUD, modal styling
+- Layout grid (TopHUD | NavBar | GameContainer | ActionBar)
+- NavBar collapsible styles
+- GameContainer panel styles
+- ActionBar 5-slot layout
 - Responsive breakpoints
-- Custom glow and pulse animations
 
 STEP 3: css/animations.css
 - Animate.css overrides
-- Custom keyframes
+- CPU Core pulsating animation (scale + glow)
 - Floating text animations
 - Click feedback styles
 
@@ -203,44 +238,85 @@ STEP 6: js/core/SaveManager.js
 - Offline progress calculation
 
 STEP 7: js/game/GameState.js
-- Resource management
+- Resource management (crypto, compute, storage, credits)
 - Upgrade tracking
 - Cost calculations
+- Click power = 5% of total auto-generated primary currency
 - Event emission on changes
 
 STEP 8: js/game/GameLoop.js
 - requestAnimationFrame loop
 - Resource tick (100ms intervals)
+- Idle generation calculation
 - Click cooldown tracking
-- Animation triggers
 
-STEP 9: js/ui/GameUI.js
-- Vue 3 app
-- HUD component (resources, rates)
-- Shop modal component
-- Achievement notification
-- Prestige panel
+STEP 9: js/ui/NavBar.js
+- Collapsible navigation component
+- Icon-only mode (collapsed)
+- Icon + label mode (expanded)
+- Panel trigger buttons (Home, Shop, Prestige, Achievements, Settings)
+- Home is default active
 
-STEP 10: js/ui/ClickableSprite.js
-- Vue component
-- Click handler
-- Animate.css classes
-- Floating text element
+STEP 10: js/ui/TopHUD.js
+- Clickable resource display
+- Opens DetailsModal on click
+- Shows all 4 currencies with rates
 
-STEP 11: config/*.json
+STEP 11: js/ui/GameContainer.js
+- Center panel area
+- Renders active panel content
+- Manages panel switching
+
+STEP 12: js/ui/ActionBar.js
+- 5 horizontal slots at bottom
+- Styled for future use (abilities, items)
+- Functional hooks for later
+
+STEP 13: js/ui/DetailsModal.js
+- Full-width canvas-wide scrollable modal
+- Shows all income sources
+- Shows all modifiers
+- Triggered by clicking TopHUD
+
+STEP 14: js/ui/HomePanel.js
+- CPU Core pulsating graphic
+- Clickable to generate primary currency
+- Click power = 5% of total auto-generated primary currency
+- animate.css pulse animation
+
+STEP 15: js/ui/ShopPanel.js
+- Upgrade list
+- Category filtering
+- Purchase functionality
+
+STEP 16: js/ui/PrestigePanel.js
+- Reboot options
+- Multiplier display
+- Reset confirmation
+
+STEP 17: js/ui/AchievementsPanel.js
+- Milestone list
+- Progress tracking
+- Reward display
+
+STEP 18: js/ui/SettingsPanel.js
+- Configuration options
+- Sound toggle (future)
+- Save/reset buttons
+
+STEP 19: config/*.json
 - game.json, resources.json, upgrades.json
 - achievements.json, prestige.json, sprites.json
 
-STEP 12: assets/sprites/*.svg
-- 16 SVG sprites
-- AI orb, CPUs, GPUs, etc.
+STEP 20: assets/sprites/*.svg
+- CPU Core pulsating graphic
+- 16+ SVG sprites
 - Inline as base64 for CORS
 
-STEP 13: Responsive Implementation
-- Mobile touch events, scrollable modals, media queries
-
-STEP 14: Testing and Polish
-- Validation checks, performance, mobile
+STEP 21: Testing and Polish
+- All validation checks
+- Responsive layout
+- Mobile support
 
 ================================================================
 9. CONFIGURATION SPECIFICATIONS
@@ -253,8 +329,9 @@ game.json:
 {
   "title": "My AFK AI",
   "tagline": "Build your AI empire",
-  "clickPower": 1,
-  "tickRate": 100
+  "clickPowerPercent": 5,
+  "tickRate": 100,
+  "autoSaveInterval": 30000
 }
 
 resources.json:
@@ -346,27 +423,44 @@ FORBIDDEN FILES:
 PRE-LAUNCH:
 - Open index.html directly (file:// protocol)
 - No console errors
-- All 4 currencies visible in HUD
-- AI Orb visible with glow animation
-- Animate.css animations working
+- Layout renders correctly (TopHUD, NavBar, GameContainer, ActionBar)
+
+NAVIGATION:
+- NavBar is collapsible (icon only / icon + label)
+- Home panel is default active
+- Can switch between panels (Shop, Prestige, Achievements, Settings)
+- Active panel highlighted in NavBar
+
+HOME PANEL:
+- CPU Core pulsating graphic visible
+- Click generates primary currency
+- Click power = 5% of total auto-generated primary currency
+- animate.css pulse animation working
+
+TOP HUD:
+- Shows all 4 currencies with rates
+- Clickable -> opens DetailsModal
+- DetailsModal is full-width, scrollable
 
 GAMEPLAY:
-- Click AI Orb shows +Crypto animation
-- Crypto value increases on click
-- Shop opens as modal overlay
+- Idle generation works (resources accumulate without clicking)
+- Shop opens in GameContainer panel
 - 12 upgrades visible across categories
-- Can purchase Basic CPU upgrade
-- Compute currency increases over time
+- Can purchase upgrades
 - Upgrade costs scale after purchase
 - Achievements unlock at milestones
 - Prestige/reboot works
+
+ACTION BAR:
+- 5 slots visible at bottom
+- Styled for future use
 
 RESPONSIVE:
 - Works on desktop (1200px+)
 - Works on tablet (768px)
 - Works on mobile (375px)
 - Touch events work
-- Modal scrolls on small screens
+- NavBar collapses properly on small screens
 
 PERSISTENCE:
 - Refresh page restores state
@@ -375,6 +469,7 @@ PERSISTENCE:
 
 CONFIG:
 - Change title in game.json works
+- Change clickPowerPercent in game.json works
 - Change upgrade cost in upgrades.json works
 - Add currency in resources.json works
 
@@ -383,12 +478,16 @@ CONFIG:
 ================================================================
 
 - Zero build: Open index.html with no server
-- Playable: Click orb gains resources
-- Upgradeable: Buy upgrades see effect
+- Layout: TopHUD, collapsible NavBar, GameContainer, ActionBar all visible
+- Navigation: Left panels work (Home default, Shop, Prestige, Achievements, Settings)
+- CPU Core: Home panel has pulsating clickable that generates 5% of auto income
+- TopHUD: Clickable, opens full-width details modal
+- ActionBar: 5 slots visible at bottom for future use
+- Playable: Click CPU Core gains resources
+- Upgradeable: Buy upgrades in Shop panel
 - Saveable: Refresh keeps progress
 - Configurable: Edit JSON changes game
-- Themed: "My AFK AI" identity clear
-- Animated: Animate.css working
+- Animated: Animate.css pulse on CPU Core working
 - Mobile: Responsive on all devices
 - No canvas: Pure DOM rendering
 

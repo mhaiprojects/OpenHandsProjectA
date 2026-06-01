@@ -1,0 +1,7 @@
+{
+    "enabled": true,
+    "minClicks": 1000,
+    "multiplierPerLevel": 1.5,
+    "resetOnPrestige": ["upgrades", "clicks"],
+    "description": "Reboot your progress to gain permanent income multipliers"
+}

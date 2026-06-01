@@ -1,0 +1,58 @@
+[
+    {
+        "id": "first_click",
+        "name": "First Click",
+        "description": "Click the AI orb",
+        "icon": "👆",
+        "condition": { "type": "clicks", "value": 1 },
+        "reward": { "crypto": 10 }
+    },
+    {
+        "id": "click_100",
+        "name": "Dedicated Clicker",
+        "description": "Click 100 times",
+        "icon": "🖱️",
+        "condition": { "type": "clicks", "value": 100 },
+        "reward": { "crypto": 100 }
+    },
+    {
+        "id": "click_1000",
+        "name": "Click Master",
+        "description": "Click 1,000 times",
+        "icon": "🏆",
+        "condition": { "type": "clicks", "value": 1000 },
+        "reward": { "crypto": 1000 }
+    },
+    {
+        "id": "earn_1000_crypto",
+        "name": "Crypto Beginner",
+        "description": "Earn 1,000 total crypto",
+        "icon": "💰",
+        "condition": { "type": "crypto", "value": 1000 },
+        "reward": { "crypto": 500 }
+    },
+    {
+        "id": "earn_10000_crypto",
+        "name": "Crypto Enthusiast",
+        "description": "Earn 10,000 total crypto",
+        "icon": "💎",
+        "condition": { "type": "crypto", "value": 10000 },
+        "reward": { "crypto": 2500 }
+    },
+    {
+        "id": "first_upgrade",
+        "name": "First Upgrade",
+        "description": "Purchase your first upgrade",
+        "icon": "⬆️",
+        "condition": { "type": "upgrades", "value": 1 },
+        "reward": { "crypto": 50 }
+    },
+    {
+        "id": "ten_upgrades",
+        "name": "Upgrading Machine",
+        "description": "Own 10 total upgrades",
+        "icon": "⚙️",
+        "condition": { "type": "upgrades", "value": 10 },
+        "reward": { "crypto": 500 }
+    }
+]

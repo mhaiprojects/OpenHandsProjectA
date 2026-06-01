@@ -33,7 +33,7 @@ export class ConfigManager {
      * @returns {Promise<void>}
      */
     async loadAll() {
-        const configFiles = ['game', 'resources', 'upgrades', 'sprites'];
+        const configFiles = ['game', 'resources', 'upgrades', 'sprites', 'achievements', 'prestige'];
         await Promise.all(configFiles.map(name => this.load(name)));
     }
 
