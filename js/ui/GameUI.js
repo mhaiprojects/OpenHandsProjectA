@@ -7,9 +7,9 @@ import { ConfigManager } from '../core/ConfigManager.js';
 import { SaveManager } from '../core/SaveManager.js';
 
 export class GameState {
-    constructor() {
-        this.configManager = null;
-        this.saveManager = new SaveManager();
+    constructor(configManager = null, saveManager = null) {
+        this.configManager = configManager || new ConfigManager();
+        this.saveManager = saveManager || new SaveManager();
         
         // Core game state
         this.resources = {};
@@ -34,8 +34,9 @@ export class GameState {
 
     async init() {
         // Load configuration
-        this.configManager = new ConfigManager();
-        await this.configManager.loadAll();
+        if (!this.configManager.has('resources')) {
+            await this.configManager.loadAll();
+        }
         
         // Initialize resources from config
         const resourcesConfig = this.configManager.get('resources');
@@ -106,16 +107,13 @@ export class GameState {
             this.restoreState(savedState);
         }
         
-        // Start game loop
-        this.start();
-        
         return this;
     }
 
     start() {
         this.lastUpdate = Date.now();
         
-        // Game loop at 60fps
+        // Start game loop
         this.gameLoop = setInterval(() => {
             this.update();
         }, 1000 / 60);
