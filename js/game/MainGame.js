@@ -35,6 +35,11 @@ export class MainGame extends Phaser.Scene {
         eventBus.on('game:click', (data) => {
             this.showClickFeedback();
         });
+
+        // Listen for purchase events for screen shake
+        eventBus.on('upgrade:purchased', (data) => {
+            this.triggerScreenShake(5);
+        });
     }
 
     /**
@@ -303,6 +308,16 @@ export class MainGame extends Phaser.Scene {
     shutdown() {
         this.input.off('pointerdown');
         eventBus.off('game:click');
+        eventBus.off('upgrade:purchased');
+    }
+
+    /**
+     * Trigger screen shake effect
+     * @param {number} intensity - Shake intensity
+     */
+    triggerScreenShake(intensity = 5) {
+        const camera = this.cameras.main;
+        camera.shake(150, intensity / 1000);
     }
 }
 

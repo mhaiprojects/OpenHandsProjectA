@@ -1,8 +1,10 @@
 # 1. OBJECTIVE
 
-Build a zero-build-system, data-driven idle/incremental game framework using Phaser IO for game rendering and Vue 3 (CDN) for UI overlays. All game data, configuration, and graphical assets are managed through JSON files, enabling easy customization and asset swapping without any build tools or npm.
+Implement "My AFK AI" - a themed idle/incremental game where players build an AI empire, recruit AI models, and install extensions to generate cryptocurrency as the primary currency.
 
 ## 2. CONTEXT SUMMARY
+
+**Game Theme:** My AFK AI - Build your AI empire, earn crypto while you sleep
 
 **Core Stack:**
 - **Phaser IO 3.x**: 2D game engine via CDN (ES module)
@@ -10,23 +12,22 @@ Build a zero-build-system, data-driven idle/incremental game framework using Pha
 - **Vanilla JS/ES Modules**: No bundler, no TypeScript, runs directly in browser
 - **Fetch API**: Load JSON configs at runtime
 
-**Architecture:**
-- Pure ES modules loaded via `<script type="module">`
-- Phaser handles the game canvas and interactive game objects
-- Vue loaded via CDN for reactive UI overlays (menus, HUD, shop)
-- Event bus bridges communication between Phaser and Vue
-- JSON configurations drive all content (no hardcoded game data)
-- SVG assets with JSON-based sprite mappings
+**Current Implementation Status:**
+- ✅ Framework complete (EventBus, ConfigManager, AssetManager, SaveManager)
+- ✅ Game engine ready (Phaser MainGame scene, GameManager)
+- ✅ UI overlay ready (Vue-based HUD and Shop)
+- ✅ "My AFK AI" themed content (4 currencies, 12 upgrades, 16 sprites)
+- ⚠️ Polish & UX needs completion (Step 11 remaining)
 
 **Directory Structure:**
 ```
 /index.html         - Main entry, loads all modules via CDN
 /config            - JSON configuration files (game.json, resources.json, etc.)
-/assets/sprites     - SVG sprite files
+/assets/sprites     - SVG sprite files (16 themed sprites)
 /js
   /core             - EventBus, ConfigManager, AssetManager, SaveManager
-  /game             - Phaser scenes and game logic
-  /ui               - Vue components (optional, can use vanilla JS)
+  /game             - Phaser scenes and game logic (MainGame.js, GameManager.js)
+  /ui               - Vue components (GameUI.js)
 ```
 
 ## 3. APPROACH OVERVIEW
@@ -43,83 +44,70 @@ Build a zero-build-system, data-driven idle/incremental game framework using Pha
 - All visual assets configurable via `sprites.json`
 - Modular upgrade/resource systems
 - Save/load via localStorage with JSON serialization
+- Data-driven game design via JSON configs
 
-## 4. IMPLEMENTATION STEPS
+## 4. IMPLEMENTATION STATUS
 
-### Step 1: HTML Entry Point
-- **Goal**: Create main index.html that loads everything via CDN
-- **Method**: Include Phaser and Vue via ES module CDN, create canvas container and UI overlay div
-- **Reference**: /index.html
+### Completed Steps:
+| Step | Status | Description |
+|------|--------|-------------|
+| 1 | ✅ | HTML Entry Point - "My AFK AI" themed |
+| 2 | ✅ | Event System - EventBus pub/sub |
+| 3 | ✅ | Configuration System - ConfigManager |
+| 4 | ✅ | SVG Asset System - AssetManager |
+| 5 | ✅ | Game Config JSON - 4 currencies, 12 upgrades |
+| 6 | ✅ | Phaser Scene - MainGame with AI orb clicker |
+| 7 | ✅ | Game Manager - resource generation, upgrades |
+| 8 | ✅ | Vue UI - HUD with resources, Shop overlay |
+| 9 | ✅ | Save/Load System - SaveManager, auto-save |
+| 10 | ✅ | Demo Game - "My AFK AI" complete |
 
-### Step 2: Core Event System
-- **Goal**: Create pub/sub event bus for Phaser ↔ Vue communication
-- **Method**: Implement EventBus class with on/off/emit methods; export singleton
-- **Reference**: /js/core/EventBus.js
+### Remaining Step:
+| Step | Status | Description |
+|------|--------|-------------|
+| 11 | ⚠️ | **POLISH & UX** - Add finishing touches |
 
-### Step 3: Configuration System
-- **Goal**: Build JSON config loader with validation
-- **Method**: Create ConfigManager to fetch and parse game.json, resources.json, upgrades.json, sprites.json
-- **Reference**: /js/core/ConfigManager.js
+## 5. REMAINING WORK
 
-### Step 4: SVG Asset System
-- **Goal**: Implement asset loading with SVG support and sprite mapping
-- **Method**: Create AssetManager that reads sprites.json, loads SVGs as data URLs, creates Phaser textures dynamically
-- **Reference**: /js/core/AssetManager.js, /assets/sprites/
+### Step 11: Polish & UX
+- **Goal**: Ensure game is polished, responsive, and satisfying
+- **Missing Items:**
+  1. Upgrade tooltips showing effect details
+  2. Resource rate display (/sec)
+  3. Visual screen shake on big purchases
+  4. Resource icon display in HUD
+  5. Better upgrade category indicators
+  6. Game title/tagline display
+  7. Sound effects (optional, config-driven)
 
-### Step 5: Game Config JSON Files
-- **Goal**: Create starter JSON configurations
-- **Method**: Define config structure for:
-  - `game.json`: resolution, FPS, starting values
-  - `resources.json`: resource types, icons, generation rates
-  - `upgrades.json`: upgrade definitions with costs/effects
-  - `sprites.json`: sprite ID to SVG path mapping, animation definitions
-- **Reference**: /config/*.json
+### Implementation Plan:
+1. Enhance GameUI with:
+   - Resource rates (per second)
+   - Icon display for each resource
+   - Upgrade tooltips
+   - Title display
+2. Add screen shake effect for purchases
+3. Update MainGame for visual polish
+4. Add optional audio support via config
 
-### Step 6: Phaser Scene - MainGame
-- **Goal**: Create main game scene with idle resource generation
-- **Method**: Implement scene with:
-  - Resource ticker (generates resources over time)
-  - Sprite rendering based on config
-  - Click interaction on sprites
-- **Reference**: /js/game/MainGame.js
-
-### Step 7: Game Manager
-- **Goal**: Orchestrate game state, resources, upgrades, idle loop
-- **Method**: Create GameManager class that handles resource generation, upgrade purchases, state updates
-- **Reference**: /js/game/GameManager.js
-
-### Step 8: Vue UI - HUD & Shop
-- **Goal**: Display resource counts and upgrade shop overlay
-- **Method**: Create Vue app via CDN with reactive UI components; subscribe to EventBus for updates
-- **Reference**: /js/ui/GameUI.js (or inline in index.html)
-
-### Step 9: Save/Load System
-- **Goal**: Persist game state to localStorage
-- **Method**: Create SaveManager with auto-save (every 30s) and manual save; serialize game state to JSON
-- **Reference**: /js/core/SaveManager.js
-
-### Step 10: Sample Content - Demo Idle Game
-- **Goal**: Populate configs with working demo content
-- **Method**: Add sample resources, upgrades, SVGs to demonstrate framework capabilities
-- **Reference**: /config/*.json, /assets/sprites/*.svg
-
-## 5. TESTING AND VALIDATION
+## 6. TESTING AND VALIDATION
 
 **Success Criteria:**
-- Game loads by opening index.html directly in browser (no server needed)
-- Resources auto-generate and display in HUD
-- Clicking sprites generates resources (configurable)
-- Shop displays upgrades from JSON, purchases deduct costs
-- Game state saves to localStorage and restores on reload
-- SVG assets render correctly via sprite mapping
-- Vue UI updates in real-time as game state changes
+- Game is immediately playable upon opening index.html
+- Clicking generates visible resource gain with feedback
+- 4 currencies displayed with icons and rates
+- 12 upgrades purchasable across 4 categories
+- Upgrade costs scale properly
+- Idle generation works
+- Save/load preserves exact game state
+- All visuals load from JSON configs
 
 **Validation Steps:**
-1. Open index.html in browser (file:// protocol works)
-2. Verify game canvas renders at configured resolution
-3. Check browser console for errors
-4. Wait 10 seconds, verify idle resources increase
-5. Click on game sprites, verify click rewards
-6. Purchase an upgrade, verify cost deduction and effect
-7. Refresh page, verify game state restored
-8. Edit sprites.json to swap a sprite, verify changes load without code changes
+1. Open index.html in browser
+2. Verify AI orb clickable with glow effect
+3. Click orb → Crypto increases with "+Crypto" feedback
+4. Check HUD shows all 4 currencies with rates
+5. Purchase "Basic CPU" upgrade → verify effect
+6. Watch resources auto-generate over time
+7. Refresh page → verify state restored
+8. Test Shop categories: Systems, AI Models, Extensions, Automation
