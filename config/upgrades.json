@@ -1,31 +1,217 @@
 {
     "upgradeCategories": [
         {
-            "id": "production",
-            "name": "Production",
-            "description": "Increase resource generation"
+            "id": "system",
+            "name": "Systems",
+            "description": "Hardware and infrastructure upgrades"
         },
         {
-            "id": "click",
-            "name": "Click Power",
-            "description": "Increase click rewards"
+            "id": "model",
+            "name": "AI Models",
+            "description": "Recruit and upgrade AI models"
+        },
+        {
+            "id": "extension",
+            "name": "Extensions",
+            "description": "Special AI enhancements"
         },
         {
             "id": "automation",
             "name": "Automation",
-            "description": "Automate resource generation"
+            "description": "Automated generation features"
         }
     ],
     "upgrades": [
         {
+            "id": "basic_cpu",
+            "name": "Basic CPU",
+            "description": "Entry-level processing unit for AI operations",
+            "category": "system",
+            "icon": "cpu",
+            "cost": {
+                "resource": "crypto",
+                "base": 50,
+                "scaling": 1.3,
+                "owned": 0
+            },
+            "effect": {
+                "type": "rate_multiplier",
+                "resource": "crypto",
+                "value": 1.5
+            },
+            "maxOwned": 10,
+            "unlockRequirement": null
+        },
+        {
+            "id": "gpu_farm",
+            "name": "GPU Farm",
+            "description": "Multi-GPU setup for parallel AI processing",
+            "category": "system",
+            "icon": "gpu",
+            "cost": {
+                "resource": "crypto",
+                "base": 500,
+                "scaling": 1.6,
+                "owned": 0
+            },
+            "effect": {
+                "type": "rate_multiplier",
+                "resource": "hash",
+                "value": 2.0
+            },
+            "maxOwned": 8,
+            "unlockRequirement": {
+                "resource": "crypto",
+                "minAmount": 200
+            }
+        },
+        {
+            "id": "data_center",
+            "name": "Data Center",
+            "description": "Full-scale data processing facility",
+            "category": "system",
+            "icon": "server",
+            "cost": {
+                "resource": "hash",
+                "base": 100,
+                "scaling": 1.5,
+                "owned": 0
+            },
+            "effect": {
+                "type": "rate_multiplier",
+                "resource": "data",
+                "value": 2.5
+            },
+            "maxOwned": 5,
+            "unlockRequirement": {
+                "resource": "hash",
+                "minAmount": 50
+            }
+        },
+        {
+            "id": "gpt3_mini",
+            "name": "GPT-3 Mini",
+            "description": "Entry-level AI model for basic tasks",
+            "category": "model",
+            "icon": "brain",
+            "cost": {
+                "resource": "crypto",
+                "base": 100,
+                "scaling": 1.4,
+                "owned": 0
+            },
+            "effect": {
+                "type": "generate",
+                "resource": "crypto",
+                "value": 2,
+                "interval": 1000
+            },
+            "maxOwned": 10,
+            "unlockRequirement": null
+        },
+        {
+            "id": "claude_model",
+            "name": "Claude Model",
+            "description": "Advanced AI assistant for complex tasks",
+            "category": "model",
+            "icon": "ai",
+            "cost": {
+                "resource": "crypto",
+                "base": 1000,
+                "scaling": 1.5,
+                "owned": 0
+            },
+            "effect": {
+                "type": "generate",
+                "resource": "hash",
+                "value": 1,
+                "interval": 1000
+            },
+            "maxOwned": 5,
+            "unlockRequirement": {
+                "resource": "crypto",
+                "minAmount": 500
+            }
+        },
+        {
+            "id": "gemini_ultra",
+            "name": "Gemini Ultra",
+            "description": "Cutting-edge multimodal AI model",
+            "category": "model",
+            "icon": "gemini",
+            "cost": {
+                "resource": "data",
+                "base": 200,
+                "scaling": 1.6,
+                "owned": 0
+            },
+            "effect": {
+                "type": "generate",
+                "resource": "data",
+                "value": 0.5,
+                "interval": 1000
+            },
+            "maxOwned": 5,
+            "unlockRequirement": {
+                "resource": "data",
+                "minAmount": 100
+            }
+        },
+        {
+            "id": "mining_ext",
+            "name": "Mining Extension",
+            "description": "Optimizes crypto extraction algorithms",
+            "category": "extension",
+            "icon": "pickaxe",
+            "cost": {
+                "resource": "hash",
+                "base": 50,
+                "scaling": 1.8,
+                "owned": 0
+            },
+            "effect": {
+                "type": "rate_multiplier",
+                "resource": "crypto",
+                "value": 1.25
+            },
+            "maxOwned": 5,
+            "unlockRequirement": {
+                "resource": "hash",
+                "minAmount": 25
+            }
+        },
+        {
+            "id": "token_optimizer",
+            "name": "Token Optimizer",
+            "description": "Improves efficiency of premium token generation",
+            "category": "extension",
+            "icon": "token",
+            "cost": {
+                "resource": "token",
+                "base": 10,
+                "scaling": 2.0,
+                "owned": 0
+            },
+            "effect": {
+                "type": "rate_multiplier",
+                "resource": "token",
+                "value": 2.0
+            },
+            "maxOwned": 3,
+            "unlockRequirement": {
+                "resource": "token",
+                "minAmount": 5
+            }
+        },
+        {
             "id": "auto_clicker",
-            "name": "Auto Clicker",
-            "description": "Automatically clicks once per second",
+            "name": "Auto-Miner",
+            "description": "Automatically generates crypto every second",
             "category": "automation",
             "icon": "robot",
             "cost": {
-                "resource": "coins",
-                "base": 50,
+                "resource": "crypto",
+                "base": 75,
                 "scaling": 1.5,
                 "owned": 0
             },
@@ -36,97 +222,76 @@
             },
             "maxOwned": 10,
             "unlockRequirement": {
-                "resource": "coins",
+                "resource": "crypto",
                 "minAmount": 25
             }
         },
         {
-            "id": "click_boost_1",
-            "name": "Golden Touch",
-            "description": "Doubles click value for all resources",
-            "category": "click",
-            "icon": "hand",
+            "id": "deep_learning",
+            "name": "Deep Learning Core",
+            "description": "Self-improving neural network module",
+            "category": "automation",
+            "icon": "neural",
             "cost": {
-                "resource": "coins",
-                "base": 100,
-                "scaling": 2.0,
+                "resource": "data",
+                "base": 150,
+                "scaling": 1.7,
                 "owned": 0
             },
             "effect": {
-                "type": "click_multiplier",
-                "value": 2
-            },
-            "maxOwned": 3,
-            "unlockRequirement": null
-        },
-        {
-            "id": "production_boost_1",
-            "name": "Efficient Mining",
-            "description": "Increases resource generation by 50%",
-            "category": "production",
-            "icon": "pickaxe",
-            "cost": {
-                "resource": "gems",
-                "base": 10,
-                "scaling": 1.8,
-                "owned": 0
-            },
-            "effect": {
-                "type": "rate_multiplier",
-                "resource": "coins",
+                "type": "global_rate_multiplier",
                 "value": 1.5
             },
-            "maxOwned": 5,
+            "maxOwned": 3,
             "unlockRequirement": {
-                "resource": "coins",
-                "minAmount": 200
+                "resource": "data",
+                "minAmount": 75
             }
         },
         {
-            "id": "dust_generator",
-            "name": "Dust Collector",
-            "description": "Generates magic dust over time",
-            "category": "automation",
-            "icon": "crystal",
+            "id": "quantum_chip",
+            "name": "Quantum Chip",
+            "description": "Experimental quantum computing module",
+            "category": "extension",
+            "icon": "quantum",
             "cost": {
-                "resource": "coins",
-                "base": 500,
+                "resource": "token",
+                "base": 50,
                 "scaling": 2.5,
                 "owned": 0
             },
             "effect": {
                 "type": "generate",
-                "resource": "dust",
-                "value": 0.1,
+                "resource": "crypto",
+                "value": 10,
                 "interval": 1000
             },
-            "maxOwned": 20,
+            "maxOwned": 2,
             "unlockRequirement": {
-                "resource": "coins",
-                "minAmount": 250
+                "resource": "token",
+                "minAmount": 25
             }
         },
         {
-            "id": "gem_finder",
-            "name": "Gem Finder",
-            "description": "Increases gem generation rate",
-            "category": "production",
-            "icon": "gem",
+            "id": "network_boost",
+            "name": "Network Boost",
+            "description": "Increases all AI processing speeds",
+            "category": "system",
+            "icon": "network",
             "cost": {
-                "resource": "dust",
-                "base": 50,
-                "scaling": 1.6,
+                "resource": "crypto",
+                "base": 250,
+                "scaling": 1.4,
                 "owned": 0
             },
             "effect": {
-                "type": "rate_multiplier",
-                "resource": "gems",
-                "value": 2
+                "type": "global_rate_multiplier",
+                "value": 1.2
             },
             "maxOwned": 5,
             "unlockRequirement": {
-                "resource": "gems",
-                "minAmount": 5
+                "resource": "crypto",
+                "minAmount": 100
             }
         }
     ]

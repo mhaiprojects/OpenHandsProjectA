@@ -66,62 +66,100 @@ export class MainGame extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // Create decorative circles
-        for (let i = 0; i < 5; i++) {
-            const x = Phaser.Math.Between(50, width - 50);
-            const y = Phaser.Math.Between(50, height - 50);
-            const radius = Phaser.Math.Between(20, 60);
-            const alpha = Phaser.Math.FloatBetween(0.1, 0.2);
-
-            const circle = this.add.circle(x, y, radius, 0x4a69bd, alpha);
-            circle.setBlendMode(Phaser.BlendModes.ADD);
-        }
-
-        // Create grid pattern
+        // Create hex grid pattern
         const graphics = this.add.graphics();
-        graphics.lineStyle(1, 0x4a69bd, 0.1);
+        graphics.lineStyle(1, 0x00ffcc, 0.1);
 
-        for (let x = 0; x < width; x += 50) {
+        // Vertical lines
+        for (let x = 0; x < width; x += 40) {
             graphics.moveTo(x, 0);
             graphics.lineTo(x, height);
         }
 
-        for (let y = 0; y < height; y += 50) {
+        // Horizontal lines
+        for (let y = 0; y < height; y += 40) {
             graphics.moveTo(0, y);
             graphics.lineTo(width, y);
         }
 
         graphics.strokePath();
+
+        // Create floating particles
+        for (let i = 0; i < 8; i++) {
+            const x = Phaser.Math.Between(50, width - 50);
+            const y = Phaser.Math.Between(50, height - 50);
+            const size = Phaser.Math.Between(2, 6);
+            const alpha = Phaser.Math.FloatBetween(0.2, 0.5);
+
+            const particle = this.add.circle(x, y, size, 0x00ffcc, alpha);
+            particle.setBlendMode(Phaser.BlendModes.ADD);
+
+            // Floating animation
+            this.tweens.add({
+                targets: particle,
+                y: `+=${Phaser.Math.Between(-20, 20)}`,
+                alpha: alpha * 0.5,
+                duration: Phaser.Math.Between(2000, 4000),
+                ease: 'Sine.easeInOut',
+                yoyo: true,
+                repeat: -1
+            });
+        }
     }
 
     /**
      * Create the main clickable sprite
      */
     createMainSprite() {
-        // Try to use main_clicker sprite, fallback to colored circle
+        // Try to use main_clicker sprite, fallback to glowing circle
         if (this.textures.exists('sprite_main_clicker')) {
             this.mainSprite = this.add.sprite(400, 300, 'sprite_main_clicker');
         } else {
-            // Create placeholder circle
-            this.mainSprite = this.add.circle(400, 300, 50, 0x00ff88);
-            this.mainSprite.setStrokeStyle(3, 0xffffff);
+            // Create placeholder glowing orb
+            const graphics = this.add.graphics();
+            graphics.fillStyle(0x00ffcc, 0.3);
+            graphics.fillCircle(400, 300, 60);
+            graphics.fillStyle(0x00ffcc, 0.6);
+            graphics.fillCircle(400, 300, 40);
+            graphics.fillStyle(0x00ffcc, 1);
+            graphics.fillCircle(400, 300, 25);
+
+            // Create sprite from graphics
+            this.mainSprite = this.add.circle(400, 300, 40, 0x00ffcc);
+            this.mainSprite.setStrokeStyle(4, 0x00aa88);
         }
 
         this.mainSprite.setInteractive({ useHandCursor: true });
 
+        // Add glow effect
+        const glow = this.add.circle(400, 300, 50, 0x00ffcc, 0.2);
+        glow.setBlendMode(Phaser.BlendModes.ADD);
+
+        // Pulse animation for glow
+        this.tweens.add({
+            targets: glow,
+            scaleX: 1.3,
+            scaleY: 1.3,
+            alpha: 0.1,
+            duration: 1500,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1
+        });
+
         // Add hover effect
         this.mainSprite.on('pointerover', () => {
             this.tweens.add({
-                targets: this.mainSprite,
-                scaleX: 1.1,
-                scaleY: 1.1,
+                targets: [this.mainSprite, glow],
+                scaleX: 1.15,
+                scaleY: 1.15,
                 duration: 100
             });
         });
 
         this.mainSprite.on('pointerout', () => {
             this.tweens.add({
-                targets: this.mainSprite,
+                targets: [this.mainSprite, glow],
                 scaleX: 1,
                 scaleY: 1,
                 duration: 100
@@ -130,9 +168,9 @@ export class MainGame extends Phaser.Scene {
 
         // Add idle floating animation
         this.tweens.add({
-            targets: this.mainSprite,
-            y: '+=10',
-            duration: 2000,
+            targets: [this.mainSprite, glow],
+            y: '+=8',
+            duration: 2500,
             ease: 'Sine.easeInOut',
             yoyo: true,
             repeat: -1
@@ -175,13 +213,8 @@ export class MainGame extends Phaser.Scene {
      * @param {number} y - Y position
      */
     showClickFeedback(x = 400, y = 300) {
-        const configManager = this.registry.get('configManager');
-        const gameConfig = configManager.get('game');
-
-        if (!gameConfig?.clickFeedback?.enabled) return;
-
         // Create expanding ring
-        const ring = this.add.circle(x, y, 20, 0x00ff88, 0.8);
+        const ring = this.add.circle(x, y, 20, 0x00ffcc, 0.8);
         ring.setBlendMode(Phaser.BlendModes.ADD);
 
         this.tweens.add({
@@ -189,7 +222,7 @@ export class MainGame extends Phaser.Scene {
             scaleX: 3,
             scaleY: 3,
             alpha: 0,
-            duration: gameConfig.clickFeedback.duration || 200,
+            duration: 300,
             ease: 'Quad.easeOut',
             onComplete: () => {
                 ring.destroy();
@@ -199,7 +232,7 @@ export class MainGame extends Phaser.Scene {
         // Create floating particles
         for (let i = 0; i < 8; i++) {
             const angle = (i / 8) * Math.PI * 2;
-            const particle = this.add.circle(x, y, 4, 0x00ff88, 0.8);
+            const particle = this.add.circle(x, y, 4, 0x00ffcc, 0.8);
             particle.setBlendMode(Phaser.BlendModes.ADD);
 
             const targetX = x + Math.cos(angle) * 80;
@@ -221,7 +254,7 @@ export class MainGame extends Phaser.Scene {
         }
 
         // Show floating text
-        this.showFloatingText(x, y, '+1');
+        this.showFloatingText(x, y, '+Crypto');
     }
 
     /**
@@ -232,10 +265,10 @@ export class MainGame extends Phaser.Scene {
      */
     showFloatingText(x, y, text) {
         const style = {
-            fontSize: '24px',
-            fontFamily: 'Arial',
-            color: '#00ff88',
-            stroke: '#000000',
+            fontSize: '20px',
+            fontFamily: 'monospace',
+            color: '#00ffcc',
+            stroke: '#003333',
             strokeThickness: 4
         };
 

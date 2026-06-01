@@ -1,11 +1,12 @@
 {
-    "name": "Idle Game Framework Demo",
+    "name": "My AFK AI",
     "version": "1.0.0",
+    "tagline": "Build your AI empire, earn crypto while you sleep",
     "resolution": {
         "width": 800,
         "height": 600
     },
-    "backgroundColor": "#16213e",
+    "backgroundColor": "#0a0a1a",
     "targetFPS": 60,
     "startTime": 0,
     "tickRate": 1000,
@@ -14,6 +15,13 @@
     "clickFeedback": {
         "enabled": true,
         "duration": 200,
-        "color": "#00ff88"
+        "color": "#00ffcc"
+    },
+    "theme": {
+        "primary": "#00ffcc",
+        "secondary": "#9d4edd",
+        "accent": "#ff6b6b",
+        "dark": "#0a0a1a",
+        "cardBg": "#12122a"
     }
 }

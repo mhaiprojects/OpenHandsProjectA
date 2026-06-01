@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <defs>
+    <linearGradient id="geminiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8888ff"/>
+      <stop offset="50%" style="stop-color:#6666cc"/>
+      <stop offset="100%" style="stop-color:#4444aa"/>
+    </linearGradient>
+  </defs>
+  <polygon points="40,4 76,28 76,52 40,76 4,52 4,28" fill="url(#geminiGrad)" stroke="#333399" stroke-width="2"/>
+  <polygon points="40,16 64,32 64,48 40,64 16,48 16,32" fill="none" stroke="#aaaaff" stroke-width="1"/>
+  <circle cx="40" cy="40" r="12" fill="#fff" opacity="0.3"/>
+</svg>

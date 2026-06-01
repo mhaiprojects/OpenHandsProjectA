@@ -310,6 +310,10 @@ export class GameManager {
                     isGenerator: true
                 });
                 break;
+
+            case 'global_rate_multiplier':
+                this.globalRateMultiplier *= effect.value;
+                break;
         }
     }
 
