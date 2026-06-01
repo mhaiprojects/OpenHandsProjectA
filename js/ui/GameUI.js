@@ -132,7 +132,16 @@ export function createGameUI(containerId) {
                 return this.gameState?.canPrestige() || false;
             },
             
-            // Modal
+            // Modal - Stats Panel
+            openStatsModal() {
+                this.activePanel = 'stats';
+            },
+            
+            closeStatsModal() {
+                this.activePanel = 'home';
+            },
+            
+            // Modal - Stats Modal
             openDetailsModal() {
                 this.detailsModalOpen = true;
             },
@@ -153,9 +162,46 @@ export function createGameUI(containerId) {
                 this.showNotification('Game saved!');
             },
             
+            exportSave() {
+                const saveData = this.gameState?.exportSave();
+                if (saveData) {
+                    const blob = new Blob([saveData], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `my-afk-ai-save-${Date.now()}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    this.showNotification('Save exported!');
+                }
+            },
+            
+            importSave() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            const success = this.gameState?.importSave(ev.target.result);
+                            if (success) {
+                                this.showNotification('Save imported!');
+                            } else {
+                                this.showNotification('Import failed!');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                input.click();
+            },
+            
             resetGame() {
-                if (confirm('Reset all progress?')) {
+                if (confirm('Reset all progress? This cannot be undone!')) {
                     this.gameState?.reset();
+                    this.showNotification('Progress reset!');
                 }
             }
         },
@@ -212,8 +258,8 @@ export function createGameUI(containerId) {
         
         template: `
             <div id="app">
-                <!-- Top HUD -->
-                <div class="top-hud">
+                <!-- Top HUD - Clickable to open Stats -->
+                <div class="top-hud" @click="openStatsModal">
                     <div class="hud-left">
                         <span class="game-logo">🤖</span>
                         <div class="game-header">
@@ -226,7 +272,7 @@ export function createGameUI(containerId) {
                         <div class="hud-resources">
                             <div v-for="(res, id) in resources" :key="id" 
                                  class="resource-item"
-                                 @click="openDetailsModal">
+                                 :title="'Click to view ' + (res.name || id) + ' stats'">
                                 <span class="resource-icon" :style="{ color: res.color }">
                                     {{ res.icon || id.substring(0, 3).toUpperCase() }}
                                 </span>
@@ -239,7 +285,7 @@ export function createGameUI(containerId) {
                     </div>
                     
                     <div class="hud-right">
-                        <button class="hud-btn" @click="saveGame">💾 Save</button>
+                        <span class="stats-hint">📊 Stats</span>
                     </div>
                 </div>
                 
@@ -430,8 +476,23 @@ export function createGameUI(containerId) {
                         <div class="settings-container">
                             <h2 class="settings-title">⚙️ Settings</h2>
                             
-                            <div class="settings-group">
-                                <h3 class="settings-group-title">Game</h3>
+                            <div class="settings-section">
+                                <h3 class="settings-section-title">💾 Save & Load</h3>
+                                <div class="settings-buttons">
+                                    <button class="settings-btn" @click="saveGame">
+                                        💾 Save Game
+                                    </button>
+                                    <button class="settings-btn" @click="exportSave">
+                                        📤 Export Save
+                                    </button>
+                                    <button class="settings-btn" @click="importSave">
+                                        📥 Import Save
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <h3 class="settings-section-title">🎮 Game Stats</h3>
                                 <div class="settings-item">
                                     <span class="settings-label">Total Clicks</span>
                                     <span class="settings-value">{{ formatNumber(stats.totalClicks) }}</span>
@@ -446,8 +507,83 @@ export function createGameUI(containerId) {
                                 </div>
                             </div>
                             
-                            <button class="settings-btn" @click="saveGame">💾 Save Game</button>
-                            <button class="settings-btn danger" @click="resetGame">🗑️ Reset Progress</button>
+                            <div class="settings-section">
+                                <h3 class="settings-section-title">📊 Currency Stats</h3>
+                                <div v-for="(res, id) in resources" :key="id" class="settings-item">
+                                    <span class="settings-label">{{ res.name || id }}</span>
+                                    <span class="settings-value">{{ formatNumber(res.amount) }} ({{ formatNumber(res.totalEarned) }} total)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <h3 class="settings-section-title">🔧 Actions</h3>
+                                <button class="settings-btn danger" @click="resetGame">
+                                    🗑️ Reset Progress
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Panel - Accessible from Top HUD -->
+                    <div class="panel" :class="{ active: activePanel === 'stats' }">
+                        <div class="stats-container">
+                            <button class="panel-back-btn" @click="closeStatsModal">← Back</button>
+                            <h2 class="stats-title">📊 Statistics</h2>
+                            
+                            <div class="stats-grid">
+                                <div class="stats-card">
+                                    <h3 class="stats-card-title">💰 Currencies</h3>
+                                    <div v-for="(res, id) in resources" :key="id" class="stats-item">
+                                        <span class="stats-icon" :style="{ color: res.color }">
+                                            {{ res.icon || id.substring(0, 3).toUpperCase() }}
+                                        </span>
+                                        <span class="stats-name">{{ res.name || id }}</span>
+                                        <span class="stats-value">{{ formatNumber(res.amount) }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="stats-card">
+                                    <h3 class="stats-card-title">📈 Income Rates</h3>
+                                    <div v-for="(rate, id) in rates" :key="id" class="stats-item" v-if="rate > 0 || resources[id]">
+                                        <span class="stats-icon" :style="{ color: resources[id]?.color }">
+                                            {{ resources[id]?.icon || id.substring(0, 3).toUpperCase() }}
+                                        </span>
+                                        <span class="stats-name">{{ resources[id]?.name || id }}</span>
+                                        <span class="stats-rate">+{{ formatNumber(rate) }}/s</span>
+                                    </div>
+                                    <div class="stats-item" v-if="Object.values(rates).every(r => r === 0)">
+                                        <span class="stats-empty">No income yet - buy upgrades!</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="stats-card">
+                                    <h3 class="stats-card-title">🎯 Game Stats</h3>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Total Clicks</span>
+                                        <span class="stats-value">{{ formatNumber(stats.totalClicks) }}</span>
+                                    </div>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Time Played</span>
+                                        <span class="stats-value">{{ formatTime(stats.totalTimePlayed) }}</span>
+                                    </div>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Click Power</span>
+                                        <span class="stats-value">+{{ formatNumber(clickPower) }}</span>
+                                    </div>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Prestige Level</span>
+                                        <span class="stats-value">{{ stats.prestigeLevel }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="stats-card">
+                                    <h3 class="stats-card-title">🏆 Achievements</h3>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Unlocked</span>
+                                        <span class="stats-value">{{ Object.values(achievements).filter(a => a.unlocked).length }} / {{ Object.keys(achievements).length }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -459,37 +595,6 @@ export function createGameUI(containerId) {
                     <div class="action-slot locked">3</div>
                     <div class="action-slot locked">4</div>
                     <div class="action-slot locked">5</div>
-                </div>
-                
-                <!-- Details Modal -->
-                <div class="details-modal" :class="{ open: detailsModalOpen }">
-                    <div class="details-header">
-                        <h2 class="details-title">📊 Income Details</h2>
-                        <button class="details-close" @click="closeDetailsModal">✕</button>
-                    </div>
-                    <div class="details-content">
-                        <div class="details-section">
-                            <h3 class="details-section-title">Idle Income</h3>
-                            <div class="income-list">
-                                <div v-for="(rate, id) in rates" :key="id" class="income-item" v-if="rate > 0">
-                                    <span class="income-source">{{ resources[id]?.name || id }}</span>
-                                    <span class="income-value">+{{ formatNumber(rate) }}/s</span>
-                                </div>
-                            </div>
-                            <div class="total-income">
-                                <span class="total-label">Total Income</span>
-                                <span class="total-value">+{{ formatNumber(totalIncome) }}/s</span>
-                            </div>
-                        </div>
-                        
-                        <div class="details-section">
-                            <h3 class="details-section-title">Click Power</h3>
-                            <div class="income-item">
-                                <span class="income-source">Per Click</span>
-                                <span class="income-value">+{{ formatNumber(clickPower) }}</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
                 <!-- Notification -->

@@ -363,6 +363,31 @@ export class GameState {
         eventBus.emit('game:saved', {});
     }
 
+    exportSave() {
+        const state = {
+            resources: this.resources,
+            upgrades: this.upgrades,
+            achievements: this.achievements,
+            stats: {
+                ...this.stats,
+                savedAt: Date.now()
+            },
+            version: 1
+        };
+        return JSON.stringify(state, null, 2);
+    }
+
+    importSave(jsonString) {
+        try {
+            const state = JSON.parse(jsonString);
+            this.restoreState(state);
+            return true;
+        } catch (e) {
+            console.error('Failed to import save:', e);
+            return false;
+        }
+    }
+
     restoreState(savedState) {
         if (savedState.resources) {
             Object.assign(this.resources, savedState.resources);
