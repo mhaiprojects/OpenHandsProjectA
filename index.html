@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My AFK AI - Build Your AI Empire</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -20,17 +19,15 @@
             position: relative;
             width: 800px;
             height: 600px;
-            background: linear-gradient(135deg, #0a0a1a 0%, #12122a 100%);
+            background: 
+                linear-gradient(rgba(0, 255, 204, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px),
+                linear-gradient(135deg, #0a0a1a 0%, #12122a 100%);
+            background-size: 40px 40px, 40px 40px, 100% 100%;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 0 40px rgba(0, 255, 204, 0.2);
             border: 1px solid rgba(0, 255, 204, 0.3);
-        }
-        #game-canvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 1;
         }
         #ui-overlay {
             position: absolute;
@@ -44,7 +41,25 @@
 </head>
 <body>
     <div id="game-container">
-        <canvas id="game-canvas"></canvas>
+        <!-- HTML-based game visual -->
+        <div id="game-visual">
+            <!-- Floating particles -->
+            <div class="particle p1"></div>
+            <div class="particle p2"></div>
+            <div class="particle p3"></div>
+            <div class="particle p4"></div>
+            <div class="particle p5"></div>
+            <div class="particle p6"></div>
+            <div class="particle p7"></div>
+            <div class="particle p8"></div>
+            
+            <!-- Clickable orb -->
+            <div class="orb-container" id="orb-container">
+                <div class="orb-glow"></div>
+                <div class="orb"></div>
+                <div class="orb-highlight"></div>
+            </div>
+        </div>
         <div id="ui-overlay"></div>
     </div>
 
@@ -102,13 +117,17 @@
                     this.panelOpen = false;
                 },
                 handleClick(e) {
-                    const rect = e.currentTarget.getBoundingClientRect();
+                    const orb = document.getElementById('orb-container');
+                    const rect = orb.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     
                     const reward = gameState.handleClick(x, y);
                     this.addClickEffect(x, y, reward);
-                    this.drawGameVisual();
+                    
+                    // Visual feedback on orb
+                    orb.classList.add('clicked');
+                    setTimeout(() => orb.classList.remove('clicked'), 150);
                 },
                 addClickEffect(x, y, reward) {
                     const effect = {
@@ -141,78 +160,6 @@
                     if (confirm('Reset all progress?')) {
                         gameState.reset();
                     }
-                },
-                drawGameVisual() {
-                    const canvas = document.getElementById('game-canvas');
-                    const ctx = canvas.getContext('2d');
-                    const w = canvas.width = 800;
-                    const h = canvas.height = 600;
-                    
-                    // Clear
-                    ctx.clearRect(0, 0, w, h);
-                    
-                    // Draw grid background
-                    ctx.strokeStyle = 'rgba(0, 255, 204, 0.05)';
-                    ctx.lineWidth = 1;
-                    for (let x = 0; x < w; x += 40) {
-                        ctx.beginPath();
-                        ctx.moveTo(x, 0);
-                        ctx.lineTo(x, h);
-                        ctx.stroke();
-                    }
-                    for (let y = 0; y < h; y += 40) {
-                        ctx.beginPath();
-                        ctx.moveTo(0, y);
-                        ctx.lineTo(w, y);
-                        ctx.stroke();
-                    }
-                    
-                    // Draw floating particles
-                    const time = Date.now() / 1000;
-                    for (let i = 0; i < 8; i++) {
-                        const px = 50 + (i * 97) % 700;
-                        const py = 50 + Math.sin(time + i) * 30 + (i * 67) % 500;
-                        const alpha = 0.15 + Math.sin(time * 2 + i) * 0.1;
-                        ctx.beginPath();
-                        ctx.arc(px, py, 3 + i % 3, 0, Math.PI * 2);
-                        ctx.fillStyle = `rgba(0, 255, 204, ${alpha})`;
-                        ctx.fill();
-                    }
-                    
-                    // Draw main clickable orb
-                    const centerX = w / 2;
-                    const centerY = h / 2 + 20;
-                    const floatOffset = Math.sin(time * 0.8) * 8;
-                    const orbY = centerY + floatOffset;
-                    
-                    // Outer glow
-                    const gradient = ctx.createRadialGradient(centerX, orbY, 30, centerX, orbY, 80);
-                    gradient.addColorStop(0, 'rgba(0, 255, 204, 0.3)');
-                    gradient.addColorStop(1, 'rgba(0, 255, 204, 0)');
-                    ctx.beginPath();
-                    ctx.arc(centerX, orbY, 80, 0, Math.PI * 2);
-                    ctx.fillStyle = gradient;
-                    ctx.fill();
-                    
-                    // Main orb
-                    ctx.beginPath();
-                    ctx.arc(centerX, orbY, 45, 0, Math.PI * 2);
-                    ctx.fillStyle = '#00ffcc';
-                    ctx.fill();
-                    
-                    // Inner highlight
-                    ctx.beginPath();
-                    ctx.arc(centerX - 15, orbY - 15, 15, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                    ctx.fill();
-                    
-                    // Pulsing ring
-                    const pulseScale = 1 + Math.sin(time * 3) * 0.15;
-                    ctx.beginPath();
-                    ctx.arc(centerX, orbY, 50 * pulseScale, 0, Math.PI * 2);
-                    ctx.strokeStyle = `rgba(0, 255, 204, ${0.5 - (pulseScale - 1) * 3})`;
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
                 }
             },
             mounted() {
@@ -227,20 +174,6 @@
                 eventBus.on('game:offline_progress', () => {
                     this.showNotification('Welcome back!');
                 });
-                
-                eventBus.on('main_game:click', () => {
-                    this.drawGameVisual();
-                });
-                
-                // Initial draw
-                this.drawGameVisual();
-                
-                // Animation loop for visual
-                const animate = () => {
-                    this.drawGameVisual();
-                    requestAnimationFrame(animate);
-                };
-                animate();
                 
                 // Auto-save every 30 seconds
                 setInterval(() => gameState.save(), 30000);
@@ -268,9 +201,6 @@
                             <span>⏱ {{ formatTime(stats.totalTimePlayed) }}</span>
                         </div>
                     </div>
-                    
-                    <!-- Clickable Game Area -->
-                    <div class="click-area" @click="handleClick"></div>
                     
                     <!-- Click Effects -->
                     <div v-for="effect in clickEffects" :key="effect.id" 
@@ -398,8 +328,104 @@
         .resource-icon { font-size: 14px; }
         .resource-value { font-weight: bold; color: #00ffcc; }
         
-        .click-area { position: absolute; top: 120px; left: 100px; right: 100px; bottom: 100px; cursor: pointer; z-index: 2; }
+        /* Game Visual - HTML based */
+        #game-visual {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
         
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(0, 255, 204, 0.3);
+            border-radius: 50%;
+            animation: float 4s ease-in-out infinite;
+        }
+        .p1 { top: 15%; left: 20%; animation-delay: 0s; }
+        .p2 { top: 25%; left: 70%; animation-delay: 0.5s; }
+        .p3 { top: 45%; left: 15%; animation-delay: 1s; }
+        .p4 { top: 35%; left: 80%; animation-delay: 1.5s; }
+        .p5 { top: 65%; left: 25%; animation-delay: 2s; }
+        .p6 { top: 55%; left: 75%; animation-delay: 2.5s; }
+        .p7 { top: 75%; left: 50%; animation-delay: 3s; }
+        .p8 { top: 85%; left: 35%; animation-delay: 3.5s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); opacity: 0.3; }
+            50% { transform: translateY(-20px); opacity: 0.5; }
+        }
+        
+        /* Clickable Orb */
+        .orb-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            pointer-events: auto;
+            animation: orbFloat 2.5s ease-in-out infinite;
+        }
+        
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(-50%, -50%); }
+            50% { transform: translate(-50%, calc(-50% - 8px)); }
+        }
+        
+        .orb-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, rgba(0, 255, 204, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.5; }
+        }
+        
+        .orb {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #00ffcc 0%, #00aa88 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.5);
+        }
+        
+        .orb-highlight {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+        }
+        
+        .orb-container:hover .orb {
+            transform: scale(1.1);
+        }
+        
+        .orb-container.clicked .orb {
+            animation: clickEffect 0.15s ease-out;
+        }
+        
+        @keyframes clickEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Click effect */
         .click-effect {
             position: absolute;
             color: #00ffcc;
