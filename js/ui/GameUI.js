@@ -75,11 +75,34 @@ export class GameUI {
             .stats-panel { display: flex; gap: 12px; background: rgba(0,0,0,0.7); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(0,255,204,0.2); }
             .shop-toggle { position: absolute; bottom: 20px; right: 20px; background: linear-gradient(135deg, #00ffcc 0%, #00aa88 100%); color: #0a0a1a; border: none; padding: 14px 28px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: bold; }
             .shop-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 100; }
-            .shop-panel { background: #0a0a1a; border-radius: 16px; padding: 24px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(0,255,204,0.3); }
+            .shop-panel { background: #0a0a1a; border-radius: 16px; padding: 24px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(0,255,204,0.3); }
             .shop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-            .upgrade-item { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-            .buy-btn { background: #00ffcc; border: none; color: #0a0a1a; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-            .buy-btn:disabled { background: #555; color: #666; }
+            /* Grid layout for upgrades */
+            .upgrades-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+            .upgrade-item { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                gap: 10px; 
+                background: rgba(255,255,255,0.05); 
+                padding: 20px 15px; 
+                border-radius: 16px; 
+                border: 1px solid rgba(0,255,204,0.15);
+                transition: all 0.2s ease;
+            }
+            .upgrade-item:hover {
+                background: rgba(0,255,204,0.1);
+                border-color: rgba(0,255,204,0.3);
+                transform: translateY(-2px);
+            }
+            .upgrade-icon { font-size: 32px; }
+            .upgrade-info { text-align: center; width: 100%; }
+            .upgrade-info h3 { font-size: 14px; margin: 0 0 6px 0; color: #00ffcc; }
+            .upgrade-info p { font-size: 11px; margin: 0; color: #888; line-height: 1.4; }
+            .upgrade-cost { font-size: 11px; color: #00aa88; margin-top: 4px; }
+            .buy-btn { background: linear-gradient(135deg, #00ffcc 0%, #00aa88 100%); border: none; color: #0a0a1a; padding: 10px 24px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; width: 100%; }
+            .buy-btn:disabled { background: #444; color: #666; cursor: not-allowed; }
+            .buy-btn:not(:disabled):hover { transform: scale(1.05); }
             .notification { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); padding: 14px 28px; border-radius: 25px; font-weight: bold; z-index: 200; background: #00ffcc; color: #0a0a1a; }
             .close-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
         `;
@@ -146,9 +169,10 @@ export class GameUI {
                                     <h3>${u.name}</h3>
                                     <p>${u.description}</p>
                                 </div>
+                                <div class="upgrade-cost">${u.owned}/${u.maxOwned} owned</div>
                                 <button class="buy-btn" ${(!u.canAfford || u.maxOwnedReached) ? 'disabled' : ''}
                                     onclick="window.__gameUI_purchase('${u.id}')">
-                                    ${u.maxOwnedReached ? 'MAX' : this.formatNumber(u.currentCost)}
+                                    ${u.maxOwnedReached ? 'MAX' : this.formatNumber(u.currentCost) + ' ₿'}
                                 </button>
                             </div>
                         `).join('');
