@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My AFK AI - Build Your AI Empire</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #050510;
             display: flex;
@@ -17,6 +13,7 @@
             align-items: center;
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
         }
         #game-container {
             position: relative;
@@ -28,114 +25,213 @@
             box-shadow: 0 0 40px rgba(0, 255, 204, 0.2);
             border: 1px solid rgba(0, 255, 204, 0.3);
         }
-        #game-canvas {
-            display: block;
+        #game-canvas { 
+            display: block; 
+            position: absolute; 
+            top: 0; 
+            left: 0;
+            z-index: 1;
         }
         #ui-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
             pointer-events: none;
+            overflow: hidden;
         }
-        #ui-overlay > * {
-            pointer-events: auto;
-        }
+        #ui-overlay > * { pointer-events: auto; }
     </style>
 </head>
 <body>
     <div id="game-container">
+        <canvas id="game-canvas"></canvas>
         <div id="ui-overlay"></div>
     </div>
 
     <script type="module">
-        import { eventBus } from './js/core/EventBus.js';
-        import { ConfigManager } from './js/core/ConfigManager.js';
-        import { AssetManager } from './js/core/AssetManager.js';
-        import { SaveManager } from './js/core/SaveManager.js';
-        import { GameManager } from './js/game/GameManager.js';
-        import { GameUI } from './js/ui/GameUI.js';
-        import { MainGame } from './js/game/MainGame.js';
-        import Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.esm.js';
-
-        class Game {
+        // Load Phaser FIRST before any game modules
+        const PhaserModule = await import('https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.esm.js');
+        const { Game: PhaserGame, Scene: PhaserScene, AUTO } = PhaserModule;
+        
+        // Load all game modules
+        const eventBusModule = await import('./js/core/EventBus.js');
+        const { eventBus } = eventBusModule;
+        
+        const configManagerModule = await import('./js/core/ConfigManager.js');
+        const { ConfigManager } = configManagerModule;
+        
+        const assetManagerModule = await import('./js/core/AssetManager.js');
+        const { AssetManager } = assetManagerModule;
+        
+        const saveManagerModule = await import('./js/core/SaveManager.js');
+        const { SaveManager } = saveManagerModule;
+        
+        const gameManagerModule = await import('./js/game/GameManager.js');
+        const { GameManager } = gameManagerModule;
+        
+        const gameUIModule = await import('./js/ui/GameUI.js');
+        const { GameUI } = gameUIModule;
+        
+        // Define MainGame inline (to avoid module import order issues)
+        class MainGame extends PhaserScene {
             constructor() {
-                this.configManager = null;
-                this.assetManager = null;
-                this.saveManager = null;
-                this.gameManager = null;
-                this.ui = null;
-                this.phaserGame = null;
+                super({ key: 'MainGame' });
+                this.mainSprite = null;
             }
-
-            async init() {
-                // Initialize managers
-                this.configManager = new ConfigManager();
-                this.saveManager = new SaveManager();
-
-                // Load configurations
-                await this.configManager.loadAll();
-
-                // Initialize asset manager
-                this.assetManager = new AssetManager(this.configManager);
-
-                // Load assets
-                await this.assetManager.loadAll();
-
-                // Initialize game manager
-                const gameConfig = this.configManager.get('game');
-                this.gameManager = new GameManager(
-                    this.configManager,
-                    this.saveManager
-                );
-
-                // Restore saved state or start fresh
-                const savedState = this.saveManager.load();
-                if (savedState) {
-                    this.gameManager.restoreState(savedState);
+            
+            create() {
+                // Create background
+                const graphics = this.add.graphics();
+                graphics.lineStyle(1, 0x00ffcc, 0.1);
+                for (let x = 0; x < 800; x += 40) {
+                    graphics.moveTo(x, 0);
+                    graphics.lineTo(x, 600);
                 }
-
-                // Create Phaser game
-                this.phaserGame = new Phaser.Game({
-                    type: Phaser.AUTO,
-                    width: gameConfig.resolution.width,
-                    height: gameConfig.resolution.height,
-                    parent: 'game-container',
-                    backgroundColor: gameConfig.backgroundColor,
-                    scene: [MainGame],
-                    callbacks: {
-                        postBoot: (game) => {
-                            // Inject asset manager into game registry
-                            game.registry.set('assetManager', this.assetManager);
-                            game.registry.set('configManager', this.configManager);
-                        }
-                    }
+                for (let y = 0; y < 600; y += 40) {
+                    graphics.moveTo(0, y);
+                    graphics.lineTo(800, y);
+                }
+                graphics.strokePath();
+                
+                // Floating particles
+                for (let i = 0; i < 8; i++) {
+                    const x = Phaser.Math.Between(50, 750);
+                    const y = Phaser.Math.Between(50, 550);
+                    const size = Phaser.Math.Between(2, 6);
+                    const particle = this.add.circle(x, y, size, 0x00ffcc, 0.3);
+                    this.tweens.add({
+                        targets: particle,
+                        y: `+=${Phaser.Math.Between(-20, 20)}`,
+                        alpha: 0.15,
+                        duration: Phaser.Math.Between(2000, 4000),
+                        ease: 'Sine.easeInOut',
+                        yoyo: true,
+                        repeat: -1
+                    });
+                }
+                
+                // Main sprite
+                this.mainSprite = this.add.circle(400, 300, 40, 0x00ffcc);
+                this.mainSprite.setInteractive({ useHandCursor: true });
+                
+                // Glow effect
+                const glow = this.add.circle(400, 300, 50, 0x00ffcc, 0.2);
+                glow.setBlendMode(Phaser.BlendModes.ADD);
+                
+                this.tweens.add({
+                    targets: glow,
+                    scaleX: 1.3, scaleY: 1.3, alpha: 0.1,
+                    duration: 1500, ease: 'Sine.easeInOut', yoyo: true, repeat: -1
                 });
-
-                // Create Vue UI
-                this.ui = new GameUI(this.gameManager, '#ui-overlay');
-
-                // Connect Phaser click events to GameManager
-                eventBus.on('main_game:click', (data) => {
-                    this.gameManager.handleClick(data);
+                
+                // Click handler
+                this.mainSprite.on('pointerdown', () => {
+                    this.showClickFeedback();
+                    eventBus.emit('main_game:click', { x: 400, y: 300 });
                 });
-
-                // Start game systems
-                this.gameManager.start();
-
-                // Auto-save every 30 seconds
-                setInterval(() => {
-                    this.gameManager.save();
-                }, 30000);
+                
+                // Hover effects
+                this.mainSprite.on('pointerover', () => {
+                    this.tweens.add({ targets: [this.mainSprite, glow], scaleX: 1.15, scaleY: 1.15, duration: 100 });
+                });
+                this.mainSprite.on('pointerout', () => {
+                    this.tweens.add({ targets: [this.mainSprite, glow], scaleX: 1, scaleY: 1, duration: 100 });
+                });
+                
+                // Idle float
+                this.tweens.add({
+                    targets: [this.mainSprite, glow],
+                    y: '+=8', duration: 2500, ease: 'Sine.easeInOut', yoyo: true, repeat: -1
+                });
+                
+                // Listen for purchase events
+                eventBus.on('upgrade:purchased', () => {
+                    this.cameras.main.shake(150, 0.005);
+                });
+            }
+            
+            showClickFeedback(x = 400, y = 300) {
+                const ring = this.add.circle(x, y, 20, 0x00ffcc, 0.8);
+                this.tweens.add({
+                    targets: ring,
+                    scaleX: 3, scaleY: 3, alpha: 0, duration: 300,
+                    onComplete: () => ring.destroy()
+                });
+                
+                // Particles
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const particle = this.add.circle(x, y, 3, 0x00ffcc, 0.8);
+                    this.tweens.add({
+                        targets: particle,
+                        x: x + Math.cos(angle) * 60,
+                        y: y + Math.sin(angle) * 60,
+                        alpha: 0, duration: 300,
+                        onComplete: () => particle.destroy()
+                    });
+                }
+                
+                const text = this.add.text(x, y - 30, '+Crypto', {
+                    fontSize: '18px', fontFamily: 'monospace', color: '#00ffcc',
+                    stroke: '#003333', strokeThickness: 3
+                });
+                text.setOrigin(0.5);
+                this.tweens.add({
+                    targets: text,
+                    y: y - 50, alpha: 0, duration: 600,
+                    onComplete: () => text.destroy()
+                });
             }
         }
-
-        // Start the game when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            const game = new Game();
-            game.init().catch(console.error);
+        
+        // Initialize game
+        const configManager = new ConfigManager();
+        await configManager.loadAll();
+        
+        const assetManager = new AssetManager(configManager);
+        await assetManager.loadAll();
+        
+        const saveManager = new SaveManager();
+        const gameManager = new GameManager(configManager, saveManager);
+        
+        // Restore saved state
+        const savedState = saveManager.load();
+        if (savedState) {
+            gameManager.restoreState(savedState);
+        }
+        
+        const gameConfig = configManager.get('game');
+        
+        // Create Phaser game
+        const phaserGame = new PhaserGame({
+            type: AUTO,
+            width: gameConfig.resolution?.width || 800,
+            height: gameConfig.resolution?.height || 600,
+            parent: 'game-container',
+            backgroundColor: gameConfig.backgroundColor || '#050510',
+            scene: [MainGame],
+            callbacks: {
+                postBoot: (game) => {
+                    game.registry.set('assetManager', assetManager);
+                    game.registry.set('configManager', configManager);
+                }
+            }
         });
+        
+        // Create UI
+        const ui = new GameUI(gameManager, '#ui-overlay');
+        
+        // Connect events
+        eventBus.on('main_game:click', (data) => {
+            gameManager.handleClick(data);
+        });
+        
+        // Start game
+        gameManager.start();
+        
+        // Auto-save
+        setInterval(() => gameManager.save(), 30000);
     </script>
 </body>
 </html>
