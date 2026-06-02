@@ -335,7 +335,7 @@ export function createGameUI(containerId) {
         },
         
         template: `
-            <div id="app">
+            <div id="app" :class="{ 'nav-expanded': navExpanded }">
                 <!-- Top HUD - Clickable to open Stats -->
                 <div class="top-hud" @click="openStatsModal">
                     <div class="hud-left">

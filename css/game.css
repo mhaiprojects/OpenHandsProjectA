@@ -63,6 +63,11 @@ body {
         "hud hud"
         "nav main"
         "nav action";
+    transition: grid-template-columns var(--transition-normal);
+}
+
+#app.nav-expanded {
+    grid-template-columns: var(--nav-width-expanded) 1fr;
 }
 
 /* ==========================================================================
@@ -369,13 +374,11 @@ body {
     background: linear-gradient(180deg, var(--bg-panel) 0%, rgba(5, 5, 20, 0.98) 100%);
     border-right: 2px solid var(--border-color);
     padding: 16px 0;
-    transition: all var(--transition-normal);
-    z-index: 90;
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    transition: width var(--transition-normal);
+    z-index: 250;
     width: var(--nav-width-collapsed);
+    min-width: var(--nav-width-collapsed);
+    max-width: var(--nav-width-collapsed);
 }
 
 .nav-bar:hover {
@@ -384,6 +387,7 @@ body {
 
 .nav-bar.expanded {
     width: var(--nav-width-expanded);
+    max-width: var(--nav-width-expanded);
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
 }
 
@@ -401,6 +405,7 @@ body {
     font-size: 20px;
     cursor: pointer;
     transition: var(--transition-fast);
+    pointer-events: all;
 }
 
 .nav-toggle:hover {
@@ -432,6 +437,8 @@ body {
     white-space: nowrap;
     overflow: hidden;
     position: relative;
+    pointer-events: all;
+    z-index: 100;
 }
 
 .nav-item::before {
