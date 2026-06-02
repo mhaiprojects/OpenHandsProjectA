@@ -34,6 +34,9 @@ export function createGameUI(containerId) {
                 detailsModalOpen: false,
                 notification: null,
                 
+                // Modal state
+                activeModal: null, // 'shop', 'prestige', 'achievements', 'settings', 'stats'
+                
                 // Floating text effects
                 floatingTexts: [],
                 
@@ -90,7 +93,17 @@ export function createGameUI(containerId) {
                 return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             },
             
-            // Navigation
+            // Navigation - Opens modals instead of panels
+            openModal(modalName) {
+                this.activeModal = modalName;
+                this.navExpanded = false; // Close nav after selecting
+                console.log('Modal opened:', modalName);
+            },
+            
+            closeModal() {
+                this.activeModal = null;
+            },
+            
             switchPanel(panel) {
                 this.activePanel = panel;
                 eventBus.emit('ui:nav_change', panel);
@@ -336,8 +349,8 @@ export function createGameUI(containerId) {
         
         template: `
             <div id="app" :class="{ 'nav-expanded': navExpanded }">
-                <!-- Top HUD - Clickable to open Stats -->
-                <div class="top-hud" @click="openStatsModal">
+                <!-- Top HUD -->
+                <div class="top-hud">
                     <div class="hud-left">
                         <span class="game-logo">🤖</span>
                         <div class="game-header">
@@ -347,23 +360,24 @@ export function createGameUI(containerId) {
                         
                         <div class="hud-divider"></div>
                         
-                        <div class="hud-resources">
+                        <!-- Currency Summary -->
+                        <div class="currency-summary">
                             <div v-for="(res, id) in resources" :key="id" 
-                                 class="resource-item"
-                                 :title="'Click to view ' + (res.name || id) + ' stats'">
-                                <span class="resource-icon" :style="{ color: res.color }">
+                                 class="currency-item"
+                                 :title="res.name || id">
+                                <span class="currency-icon" :style="{ color: res.color }">
                                     {{ res.icon || id.substring(0, 3).toUpperCase() }}
                                 </span>
-                                <span class="resource-value">{{ formatNumber(res.amount) }}</span>
-                                <span class="resource-rate" v-if="rates[id] > 0">
-                                    +{{ formatNumber(rates[id]) }}/s
-                                </span>
+                                <span class="currency-value">{{ formatNumber(res.amount) }}</span>
+                                <span class="currency-rate" v-if="rates[id] > 0">+{{ formatNumber(rates[id]) }}/s</span>
                             </div>
                         </div>
                     </div>
                     
                     <div class="hud-right">
-                        <span class="stats-hint">📊 Stats</span>
+                        <button class="stats-btn" @click="openModal('stats')">
+                            <span>📊</span> Stats
+                        </button>
                     </div>
                 </div>
                 
@@ -371,43 +385,28 @@ export function createGameUI(containerId) {
                 <nav class="nav-bar" :class="{ expanded: navExpanded }">
                     <button class="nav-toggle" @click="toggleNav">☰</button>
                     
-                    <button class="nav-stats-btn" @click="openStatsModal">
-                        <span class="nav-item-icon">📊</span>
-                        <span class="nav-item-label">Stats</span>
-                    </button>
-                    
                     <div class="nav-items">
-                        <button class="nav-item" 
-                                :class="{ active: activePanel === 'home' }"
-                                @click="switchPanel('home')">
-                            <span class="nav-item-icon">🏠</span>
-                            <span class="nav-item-label">Home</span>
+                        <button class="nav-item" @click="openModal('stats')">
+                            <span class="nav-item-icon">📊</span>
+                            <span class="nav-item-label">Stats</span>
                         </button>
                         
-                        <button class="nav-item" 
-                                :class="{ active: activePanel === 'shop' }"
-                                @click="switchPanel('shop')">
+                        <button class="nav-item" @click="openModal('shop')">
                             <span class="nav-item-icon">🛒</span>
                             <span class="nav-item-label">Shop</span>
                         </button>
                         
-                        <button class="nav-item" 
-                                :class="{ active: activePanel === 'prestige' }"
-                                @click="switchPanel('prestige')">
+                        <button class="nav-item" @click="openModal('prestige')">
                             <span class="nav-item-icon">🔄</span>
                             <span class="nav-item-label">Prestige</span>
                         </button>
                         
-                        <button class="nav-item" 
-                                :class="{ active: activePanel === 'achievements' }"
-                                @click="switchPanel('achievements')">
+                        <button class="nav-item" @click="openModal('achievements')">
                             <span class="nav-item-icon">🏆</span>
                             <span class="nav-item-label">Achievements</span>
                         </button>
                         
-                        <button class="nav-item" 
-                                :class="{ active: activePanel === 'settings' }"
-                                @click="switchPanel('settings')">
+                        <button class="nav-item" @click="openModal('settings')">
                             <span class="nav-item-icon">⚙️</span>
                             <span class="nav-item-label">Settings</span>
                         </button>
@@ -690,6 +689,179 @@ export function createGameUI(containerId) {
                                         <span class="stats-rate" v-if="boost.remaining">{{ boost.remaining }}s</span>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal Overlay -->
+                <div class="modal-overlay" :class="{ open: activeModal }" @click.self="closeModal">
+                    <!-- Stats Modal -->
+                    <div class="modal-content" v-if="activeModal === 'stats'" @click.stop>
+                        <div class="modal-header">
+                            <h2 class="modal-title">📊 Statistics</h2>
+                            <button class="modal-close" @click="closeModal">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="stats-grid">
+                                <div class="stats-card">
+                                    <h3 class="stats-card-title">💰 Currencies</h3>
+                                    <div v-for="(res, id) in resources" :key="id" class="stats-item">
+                                        <span class="stats-icon" :style="{ color: res.color }">
+                                            {{ res.icon || id.substring(0, 3).toUpperCase() }}
+                                        </span>
+                                        <span class="stats-name">{{ res.name || id }}</span>
+                                        <span class="stats-value">{{ formatNumber(res.amount) }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="stats-card">
+                                    <h3 class="stats-card-title">📈 Income Rates</h3>
+                                    <div v-for="(rate, id) in rates" :key="id" class="stats-item" v-if="rate > 0 || resources[id]">
+                                        <span class="stats-icon" :style="{ color: resources[id]?.color }">
+                                            {{ resources[id]?.icon || id.substring(0, 3).toUpperCase() }}
+                                        </span>
+                                        <span class="stats-name">{{ resources[id]?.name || id }}</span>
+                                        <span class="stats-rate">+{{ formatNumber(rate) }}/s</span>
+                                    </div>
+                                </div>
+
+                                <div class="stats-card">
+                                    <h3 class="stats-card-title">🎯 Game Stats</h3>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Total Clicks</span>
+                                        <span class="stats-value">{{ formatNumber(stats.totalClicks) }}</span>
+                                    </div>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Time Played</span>
+                                        <span class="stats-value">{{ formatTime(stats.totalTimePlayed) }}</span>
+                                    </div>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Click Power</span>
+                                        <span class="stats-value">+{{ formatNumber(clickPower) }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="stats-card">
+                                    <h3 class="stats-card-title">🏆 Achievements</h3>
+                                    <div class="stats-item">
+                                        <span class="stats-name">Unlocked</span>
+                                        <span class="stats-value">{{ Object.values(achievements).filter(a => a.unlocked).length }}/{{ Object.keys(achievements).length }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Shop Modal -->
+                    <div class="modal-content modal-large" v-if="activeModal === 'shop'" @click.stop>
+                        <div class="modal-header">
+                            <h2 class="modal-title">🛒 AI Upgrades</h2>
+                            <button class="modal-close" @click="closeModal">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="shop-filters">
+                                <button class="filter-btn" 
+                                        :class="{ active: shopFilter === 'all' }"
+                                        @click="setShopFilter('all')">All</button>
+                                <button class="filter-btn" 
+                                        :class="{ active: shopFilter === 'systems' }"
+                                        @click="setShopFilter('systems')">Systems</button>
+                                <button class="filter-btn" 
+                                        :class="{ active: shopFilter === 'models' }"
+                                        @click="setShopFilter('models')">Models</button>
+                                <button class="filter-btn" 
+                                        :class="{ active: shopFilter === 'extensions' }"
+                                        @click="setShopFilter('extensions')">Extensions</button>
+                            </div>
+                            <div class="upgrades-grid">
+                                <div v-for="upgrade in filteredUpgrades" :key="upgrade.id" 
+                                     class="upgrade-card"
+                                     :class="{ locked: !canAfford(upgrade) }">
+                                    <div class="upgrade-header">
+                                        <span class="upgrade-icon">{{ upgrade.icon }}</span>
+                                        <span class="upgrade-name">{{ upgrade.name }}</span>
+                                    </div>
+                                    <div class="upgrade-desc">{{ upgrade.description }}</div>
+                                    <div class="upgrade-stats">
+                                        <span class="upgrade-effect">{{ upgrade.effectText }}</span>
+                                        <span class="upgrade-rate" v-if="upgrade.rate">+{{ formatNumber(upgrade.rate) }}/s</span>
+                                    </div>
+                                    <div class="upgrade-footer">
+                                        <span class="upgrade-level">{{ upgrade.owned }}/{{ upgrade.maxLevel }}</span>
+                                        <button class="upgrade-buy-btn" 
+                                                @click="buyUpgrade(upgrade.id)"
+                                                :disabled="!canAfford(upgrade)">
+                                            {{ formatNumber(upgrade.cost) }} Ƀ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Prestige Modal -->
+                    <div class="modal-content" v-if="activeModal === 'prestige'" @click.stop>
+                        <div class="modal-header">
+                            <h2 class="modal-title">🔄 Prestige</h2>
+                            <button class="modal-close" @click="closeModal">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="prestige-info">
+                                <p>Reset your progress to gain prestige points and start with bonuses!</p>
+                                <div class="prestige-reward">
+                                    <span class="prestige-label">Prestige Points Earned:</span>
+                                    <span class="prestige-value">{{ calculatePrestigePoints() }}</span>
+                                </div>
+                                <div class="prestige-warning">
+                                    ⚠️ This will reset all currencies and upgrades!
+                                </div>
+                                <button class="prestige-btn" @click="performPrestige">
+                                    Perform Reboot
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Achievements Modal -->
+                    <div class="modal-content" v-if="activeModal === 'achievements'" @click.stop>
+                        <div class="modal-header">
+                            <h2 class="modal-title">🏆 Achievements</h2>
+                            <button class="modal-close" @click="closeModal">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="achievements-list">
+                                <div v-for="achievement in sortedAchievements" :key="achievement.id"
+                                     class="achievement-item"
+                                     :class="{ unlocked: achievement.unlocked }">
+                                    <span class="achievement-icon">{{ achievement.icon }}</span>
+                                    <div class="achievement-info">
+                                        <span class="achievement-name">{{ achievement.name }}</span>
+                                        <span class="achievement-desc">{{ achievement.description }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Modal -->
+                    <div class="modal-content" v-if="activeModal === 'settings'" @click.stop>
+                        <div class="modal-header">
+                            <h2 class="modal-title">⚙️ Settings</h2>
+                            <button class="modal-close" @click="closeModal">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="settings-section">
+                                <h3 class="settings-section-title">💾 Save Management</h3>
+                                <div class="settings-buttons">
+                                    <button class="settings-btn" @click="saveGame">💾 Save Game</button>
+                                    <button class="settings-btn" @click="exportSave">💾 Export Save</button>
+                                    <button class="settings-btn" @click="importSave">💾 Import Save</button>
+                                </div>
+                            </div>
+                            <div class="settings-section">
+                                <h3 class="settings-section-title">⚠️ Danger Zone</h3>
+                                <button class="settings-btn danger" @click="resetProgress">🗑️ Reset Progress</button>
                             </div>
                         </div>
                     </div>

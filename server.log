@@ -1,0 +1,23 @@
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /css/game.css HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /css/animations.css HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /js/ui/GameUI.js HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /js/game/GameLoop.js HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /js/game/GameState.js HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /js/game/RandomEvents.js HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /js/game/SkillsSystem.js HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /js/core/EventBus.js HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /js/core/ConfigManager.js HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:39] "GET /js/core/SaveManager.js HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:40] "GET /config/game.json HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:40] "GET /config/resources.json HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:40] "GET /config/upgrades.json HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:40] "GET /config/sprites.json HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:40] "GET /config/achievements.json HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:40] "GET /config/prestige.json HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 07:53:40] code 404, message File not found
+127.0.0.1 - - [02/Jun/2026 07:53:40] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [02/Jun/2026 07:53:50] "GET /css/game.css HTTP/1.1" 304 -
+127.0.0.1 - - [02/Jun/2026 07:53:50] "GET /js/ui/GameUI.js HTTP/1.1" 304 -
+127.0.0.1 - - [02/Jun/2026 07:55:47] "GET /css/game.css HTTP/1.1" 304 -
+127.0.0.1 - - [02/Jun/2026 07:55:47] "GET /js/ui/GameUI.js HTTP/1.1" 304 -
