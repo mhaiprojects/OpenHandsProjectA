@@ -5,6 +5,8 @@
 import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
 import { GameState } from '../game/GameState.js';
 import { GameLoop } from '../game/GameLoop.js';
+import { RandomEvents } from '../game/RandomEvents.js';
+import { SkillsSystem } from '../game/SkillsSystem.js';
 import { eventBus } from '../core/EventBus.js';
 
 export function createGameUI(containerId) {
@@ -35,9 +37,19 @@ export function createGameUI(containerId) {
                 // Floating text effects
                 floatingTexts: [],
                 
+                // Random boosts
+                currentBoost: null,
+                activeBoosts: [],
+                
+                // Skills system
+                skills: [],
+                activeEffects: [],
+                
                 // Game instances
                 gameState: null,
-                gameLoop: null
+                gameLoop: null,
+                randomEvents: null,
+                skillsSystem: null
             };
         },
         
@@ -150,6 +162,30 @@ export function createGameUI(containerId) {
                 this.detailsModalOpen = false;
             },
             
+            // Collect boost if available
+            collectBoost() {
+                if (this.currentBoost && this.randomEvents) {
+                    const boost = this.randomEvents.collectBoost();
+                    if (boost) {
+                        this.showNotification(`Collected: ${boost.name}!`);
+                    }
+                }
+            },
+            
+            // Skills
+            useSkill(skillId) {
+                if (this.skillsSystem) {
+                    this.skillsSystem.useSkill(skillId);
+                }
+            },
+            
+            formatCooldown(seconds) {
+                if (seconds <= 0) return '';
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            },
+            
             // Notifications
             showNotification(msg) {
                 this.notification = msg;
@@ -245,6 +281,48 @@ export function createGameUI(containerId) {
                     // Silent save
                 });
                 
+                // Initialize RandomEvents
+                this.randomEvents = new RandomEvents(this.gameState);
+                this.randomEvents.start();
+                
+                // Listen for boost events
+                eventBus.on('boost:spawn', (data) => {
+                    this.currentBoost = data.boost;
+                    this.showNotification(`Boost available! ${data.boost.icon}`);
+                });
+                
+                eventBus.on('boost:collected', (data) => {
+                    this.currentBoost = null;
+                    this.showNotification(`Collected: ${data.boost.name}!`);
+                });
+                
+                eventBus.on('boost:active', (data) => {
+                    this.activeBoosts = data.boosts;
+                });
+                
+                // Initialize SkillsSystem
+                this.skillsSystem = new SkillsSystem(this.gameState);
+                this.skillsSystem.start();
+                this.skills = this.skillsSystem.getSkills();
+                
+                // Listen for skill events
+                eventBus.on('skill:used', (data) => {
+                    this.skills = this.skillsSystem.getSkills();
+                    if (data.message) {
+                        this.showNotification(data.message);
+                    } else {
+                        this.showNotification(`Skill: ${data.skill?.name || data.skillId} activated!`);
+                    }
+                });
+                
+                eventBus.on('skill:active', (data) => {
+                    this.activeEffects = this.skillsSystem.getActiveEffects();
+                });
+                
+                eventBus.on('skill:deactivated', (data) => {
+                    this.activeEffects = this.skillsSystem.getActiveEffects();
+                });
+                
                 // Auto-save every 30 seconds
                 setInterval(() => {
                     this.gameState?.save();
@@ -292,6 +370,11 @@ export function createGameUI(containerId) {
                 <!-- Navigation Bar -->
                 <nav class="nav-bar" :class="{ expanded: navExpanded }">
                     <button class="nav-toggle" @click="toggleNav">☰</button>
+                    
+                    <button class="nav-stats-btn" @click="openStatsModal">
+                        <span class="nav-item-icon">📊</span>
+                        <span class="nav-item-label">Stats</span>
+                    </button>
                     
                     <div class="nav-items">
                         <button class="nav-item" 
@@ -363,6 +446,21 @@ export function createGameUI(containerId) {
                             <div class="click-power-display">
                                 <div class="click-power-label">Click Power</div>
                                 <div class="click-power-value">+{{ formatNumber(clickPower) }}</div>
+                            </div>
+                            
+                            <!-- Active Boosts Display -->
+                            <div class="active-boosts" v-if="activeBoosts.length > 0">
+                                <div v-for="boost in activeBoosts" :key="boost.id" class="boost-badge">
+                                    {{ boost.icon }} {{ boost.name }}
+                                    <span v-if="boost.remaining">({{ boost.remaining }}s)</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Current Boost Available to Collect -->
+                            <div v-if="currentBoost" class="boost-available" @click="collectBoost">
+                                <span class="boost-icon">{{ currentBoost.icon }}</span>
+                                <span class="boost-name">{{ currentBoost.name }}</span>
+                                <span class="boost-hint">Click to collect!</span>
                             </div>
                         </div>
                     </div>
@@ -583,18 +681,37 @@ export function createGameUI(containerId) {
                                         <span class="stats-value">{{ Object.values(achievements).filter(a => a.unlocked).length }} / {{ Object.keys(achievements).length }}</span>
                                     </div>
                                 </div>
+                                
+                                <div class="stats-card" v-if="activeBoosts.length > 0">
+                                    <h3 class="stats-card-title">⚡ Active Boosts</h3>
+                                    <div v-for="boost in activeBoosts" :key="boost.id" class="stats-item">
+                                        <span class="stats-icon">{{ boost.icon }}</span>
+                                        <span class="stats-name">{{ boost.name }}</span>
+                                        <span class="stats-rate" v-if="boost.remaining">{{ boost.remaining }}s</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Action Bar -->
+                <!-- Action Bar - Skills -->
                 <div class="action-bar">
-                    <div class="action-slot locked">1</div>
-                    <div class="action-slot locked">2</div>
-                    <div class="action-slot locked">3</div>
-                    <div class="action-slot locked">4</div>
-                    <div class="action-slot locked">5</div>
+                    <div v-for="(skill, index) in skills" :key="skill.id"
+                         class="action-slot"
+                         :class="{ 
+                             locked: !skill.unlocked, 
+                             ready: skill.unlocked && skill.currentCooldown === 0,
+                             cooldown: skill.currentCooldown > 0
+                         }"
+                         @click="skill.unlocked && skill.currentCooldown === 0 ? useSkill(skill.id) : null"
+                         :title="skill.unlocked ? (skill.currentCooldown > 0 ? skill.name + ' - ' + formatCooldown(skill.currentCooldown) : skill.name) : 'Locked'">
+                        <span class="skill-icon">{{ skill.icon }}</span>
+                        <span v-if="skill.currentCooldown > 0" class="skill-cooldown">
+                            {{ formatCooldown(skill.currentCooldown) }}
+                        </span>
+                        <span v-else-if="!skill.unlocked" class="skill-locked">🔒</span>
+                    </div>
                 </div>
                 
                 <!-- Notification -->

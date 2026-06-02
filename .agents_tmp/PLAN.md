@@ -77,8 +77,9 @@ CODE:
 LAYOUT STRUCTURE:
 
 +------------------------------------------------------------------+
-|                      TOP HUD (clickable)                          |
-|   [Resources] [Rates] [Modifiers] -> Opens details page           |
+| TOP HUD (FULLY CLICKABLE - opens Stats Panel)                     |
+| [CRYPTO: 1,234 (+5/s)] [COMPUTE: 567] [STORAGE: 89] [CREDITS: 12] |
+| Click anywhere on HUD -> Opens Stats Modal                        |
 +------------------------------------------------------------------+
 |        |                                                         |
 |  NAV   |                    GAME CONTAINER                       |
@@ -102,20 +103,21 @@ LAYOUT STRUCTURE:
 
 NAV BAR (Left Side):
 - Collapsible (icon only when collapsed, icon + label when expanded)
-- Home (default active)
-- Shop
-- Prestige
-- Achievements
-- Settings
+- Stats button at top (opens Stats Modal)
+- 5 navigation buttons: Home (default), Shop, Prestige, Achievements, Settings
+- Active panel highlighted with border/background
+- Smooth transition between collapsed/expanded states
 
 GAME CONTAINER (Center):
 - Main render area for active panel
-- Home panel: CPU Core clicker with pulsating animation
+- Home panel: Primary CPU clicker with pulsating animation
 - Other panels render their respective content
 
 ACTION BAR (Bottom):
-- 5 horizontal slots for future use (abilities, items, shortcuts)
-- Styled but functional hooks for later implementation
+- 5 configurable slots for skills
+- Skills unlocked through shop milestones and achievements
+- Click skill to activate (if not on cooldown)
+- Cooldown indicator on each skill
 
 ================================================================
 5. DIRECTORY STRUCTURE
@@ -148,12 +150,14 @@ ACTION BAR (Bottom):
 /config/
   game.json                 Game settings
   resources.json            Currency definitions
-  upgrades.json             Upgrade definitions
+  upgrades.json             Upgrade definitions (with milestone rewards)
   achievements.json        Achievement definitions
   prestige.json            Prestige/reboot settings
   sprites.json              Sprite mappings
+  skills.json               Skill definitions (unlockable abilities)
+  events.json               Random event/boost definitions
 /assets/sprites/
-  cpu-core.svg              Pulsating clickable (home)
+  primary-core.svg          Pulsating clickable (home)
   *.svg                     All other sprites
 
 ================================================================
@@ -242,13 +246,25 @@ STEP 7: js/game/GameState.js
 - Upgrade tracking
 - Cost calculations
 - Click power = 5% of total auto-generated primary currency
+- Skill management (unlock, activate, cooldown)
+- Random event spawning and collection
 - Event emission on changes
 
 STEP 8: js/game/GameLoop.js
 - requestAnimationFrame loop
 - Resource tick (100ms intervals)
 - Idle generation calculation
+- Random event timer (spawn every 20-40 seconds)
 - Click cooldown tracking
+
+STEP 8b: js/game/RandomEvents.js
+- Spawn random boost events around Primary CPU
+- Spawn interval: 20-40 seconds (random)
+- Boost types: 2x crypto for 30s, +100 crypto instant, 2x click for 60s, etc.
+- Visual indicator when boost appears (floating, pulsing)
+- Click to collect boost
+- Boost notification when collected
+- Active boosts shown in Top HUD as icons
 
 STEP 9: js/ui/NavBar.js
 - Collapsible navigation component
@@ -279,30 +295,68 @@ STEP 13: js/ui/DetailsModal.js
 - Triggered by clicking TopHUD
 
 STEP 14: js/ui/HomePanel.js
-- CPU Core pulsating graphic
+- Primary CPU pulsating graphic (SVG with animate.css pulse)
 - Clickable to generate primary currency
 - Click power = 5% of total auto-generated primary currency
-- animate.css pulse animation
+- Floating "+X" text on click
+- Visual feedback (scale animation on click)
+- Centered in GameContainer
+- Random boost events appear around the Core
+- Active boosts displayed as floating icons near Core
+
+STEP 14b: js/ui/StatsModal.js
+- Full-width modal triggered by TopHUD click OR Stats nav button
+- Shows all currencies with detailed breakdown
+- Section: Currency Overview (current, rate per sec)
+- Section: Income Sources (list of all generators and their output)
+- Section: Click Reward (base + modifiers = total)
+- Section: Temporary Modifiers (active boosts, timers)
+- Section: Permanent Modifiers (prestige multiplier, achievements)
+- Section: Active Boosts (icons with remaining time)
+- Close button to dismiss
 
 STEP 15: js/ui/ShopPanel.js
-- Upgrade list
-- Category filtering
-- Purchase functionality
+- Upgrade list with categories (Systems, AI Models, Extensions, Auto)
+- Each upgrade shows: name, cost, effect, owned count
+- Category filter tabs at top
+- Affordable upgrades highlighted
+- Unaffordable upgrades grayed out
+- Purchase button with click handler
+- Cost scales with owned count (baseCost * multiplier^owned)
+- Purchase milestone rewards skill unlock notification
+
+STEP 15b: js/ui/ActionBar.js
+- 5 configurable skill slots
+- Drag-and-drop or click to assign unlocked skills
+- Skill icons show cooldown timer
+- Click assigned skill to activate effect
+- Unassigned slots show "+" to open skill selector
+- Skill selector shows all unlocked skills
+- Equipped skills persist to save
 
 STEP 16: js/ui/PrestigePanel.js
-- Reboot options
-- Multiplier display
-- Reset confirmation
+- Prestige level display
+- Current multiplier (based on prestige level)
+- Progress to next prestige (clicks required)
+- Reset button with confirmation dialog
+- Shows what will be reset (upgrades, clicks)
+- Shows what will be kept (crypto, prestige level)
+- Reboot button triggers game reset with multiplier bonus
 
 STEP 17: js/ui/AchievementsPanel.js
-- Milestone list
-- Progress tracking
-- Reward display
+- List of all achievements (locked and unlocked)
+- Locked: grayed out, progress bar
+- Unlocked: highlighted, checkmark, timestamp
+- Each achievement shows: name, description, progress, reward
+- Achievement notification popup when unlocked
 
 STEP 18: js/ui/SettingsPanel.js
-- Configuration options
-- Sound toggle (future)
-- Save/reset buttons
+- Sound toggle (on/off) - for future use
+- Reset progress button (with confirmation)
+- Export save data (JSON download)
+- Import save data (JSON upload)
+- Version number display
+- Credits/About section
 
 STEP 19: config/*.json
 - game.json, resources.json, upgrades.json
@@ -342,46 +396,368 @@ resources.json:
   "credits": { "icon": "CRD", "color": "#22c55e", "perClick": 0, "perSec": 0 }
 }
 
-upgrades.json:
+upgrades.json (12 UPGRADES WITH MILESTONE REWARDS):
 [
   {
     "id": "basic_cpu",
     "name": "Basic CPU",
+    "description": "Entry-level processor for AI tasks",
     "category": "systems",
     "baseCost": 10,
     "costCurrency": "crypto",
     "costMultiplier": 1.15,
     "effect": { "crypto": 0.5, "compute": 0.1 }
+  },
+  {
+    "id": "advanced_gpu",
+    "name": "Advanced GPU",
+    "description": "High-performance graphics processor",
+    "category": "systems",
+    "baseCost": 100,
+    "costCurrency": "crypto",
+    "costMultiplier": 1.18,
+    "effect": { "compute": 1 },
+    "milestoneReward": { "skill": "quick_cash", "atOwned": 5 }
+  },
+  {
+    "id": "neural_net",
+    "name": "Neural Network",
+    "description": "Basic neural network for learning",
+    "category": "ai_models",
+    "baseCost": 500,
+    "costCurrency": "compute",
+    "costMultiplier": 1.20,
+    "effect": { "crypto": 2 }
+  },
+  {
+    "id": "llm_basic",
+    "name": "LLM - GPT-3.5",
+    "description": "Language model for text generation",
+    "category": "ai_models",
+    "baseCost": 2000,
+    "costCurrency": "compute",
+    "costMultiplier": 1.22,
+    "effect": { "crypto": 5, "credits": 0.1 },
+    "milestoneReward": { "skill": "click_burst", "atOwned": 10 }
+  },
+  {
+    "id": "llm_advanced",
+    "name": "LLM - GPT-4",
+    "description": "Advanced language model",
+    "category": "ai_models",
+    "baseCost": 10000,
+    "costCurrency": "compute",
+    "costMultiplier": 1.25,
+    "effect": { "crypto": 20, "credits": 0.5 }
+  },
+  {
+    "id": "rag_system",
+    "name": "RAG System",
+    "description": "Retrieval-Augmented Generation",
+    "category": "extensions",
+    "baseCost": 5000,
+    "costCurrency": "storage",
+    "costMultiplier": 1.20,
+    "effect": { "crypto": 8, "compute": 2 }
+  },
+  {
+    "id": "api_access",
+    "name": "API Access",
+    "description": "Access to external APIs",
+    "category": "extensions",
+    "baseCost": 2000,
+    "costCurrency": "credits",
+    "costMultiplier": 1.18,
+    "effect": { "crypto": 3 }
+  },
+  {
+    "id": "parallel_proc",
+    "name": "Parallel Processing",
+    "description": "Run multiple AI tasks simultaneously",
+    "category": "systems",
+    "baseCost": 10000,
+    "costCurrency": "crypto",
+    "costMultiplier": 1.25,
+    "effect": { "compute": 5 }
+  },
+  {
+    "id": "quantum_core",
+    "name": "Quantum Core",
+    "description": "Quantum computing enhancement",
+    "category": "systems",
+    "baseCost": 100000,
+    "costCurrency": "crypto",
+    "costMultiplier": 1.30,
+    "effect": { "crypto": 50, "compute": 10 }
+  },
+  {
+    "id": "auto_trainer",
+    "name": "Auto Trainer",
+    "description": "Automatically trains AI models",
+    "category": "auto",
+    "baseCost": 50000,
+    "costCurrency": "credits",
+    "costMultiplier": 1.25,
+    "effect": { "crypto": 15 }
+  },
+  {
+    "id": "storage_array",
+    "name": "Storage Array",
+    "description": "Large data storage for RAG",
+    "category": "extensions",
+    "baseCost": 3000,
+    "costCurrency": "crypto",
+    "costMultiplier": 1.15,
+    "effect": { "storage": 1 }
+  },
+  {
+    "id": "script_kiddie",
+    "name": "Script Kiddie",
+    "description": "Automates simple tasks",
+    "category": "auto",
+    "baseCost": 100,
+    "costCurrency": "crypto",
+    "costMultiplier": 1.12,
+    "effect": { "crypto": 0.3 }
   }
 ]
 
-achievements.json:
+achievements.json (10 ACHIEVEMENTS):
 [
   {
     "id": "first_click",
     "name": "First Click",
-    "description": "Click the AI orb",
+    "description": "Click the CPU Core for the first time",
     "condition": { "type": "clicks", "value": 1 },
     "reward": { "crypto": 10 }
+  },
+  {
+    "id": "clicker_10",
+    "name": "Getting Started",
+    "description": "Perform 10 clicks",
+    "condition": { "type": "clicks", "value": 10 },
+    "reward": { "crypto": 50 }
+  },
+  {
+    "id": "clicker_100",
+    "name": "Dedicated Clicker",
+    "description": "Perform 100 clicks",
+    "condition": { "type": "clicks", "value": 100 },
+    "reward": { "crypto": 500 }
+  },
+  {
+    "id": "first_upgrade",
+    "name": "First Purchase",
+    "description": "Buy your first upgrade",
+    "condition": { "type": "upgrades_owned", "value": 1 },
+    "reward": { "crypto": 100 }
+  },
+  {
+    "id": "rich_1000",
+    "name": "Crypto Millionaire",
+    "description": "Accumulate 1,000 crypto",
+    "condition": { "type": "crypto", "value": 1000 },
+    "reward": { "compute": 100 }
+  },
+  {
+    "id": "rich_10000",
+    "name": "Crypto Tycoon",
+    "description": "Accumulate 10,000 crypto",
+    "condition": { "type": "crypto", "value": 10000 },
+    "reward": { "crypto": 1000 }
+  },
+  {
+    "id": "collector",
+    "name": "Collector",
+    "description": "Own at least one of each upgrade category",
+    "condition": { "type": "categories_owned", "value": 4 },
+    "reward": { "credits": 100 }
+  },
+  {
+    "id": "prestige_1",
+    "name": "First Reboot",
+    "description": "Perform your first prestige",
+    "condition": { "type": "prestige_level", "value": 1 },
+    "reward": { "crypto": 5000 }
+  },
+  {
+    "id": "idle_master",
+    "name": "Idle Master",
+    "description": "Generate 100 crypto per second from idle",
+    "condition": { "type": "crypto_per_sec", "value": 100 },
+    "reward": { "crypto": 5000 }
+  },
+  {
+    "id": "max_prestige",
+    "name": "Ascension",
+    "description": "Reach prestige level 10",
+    "condition": { "type": "prestige_level", "value": 10 },
+    "reward": { "crypto": 50000 }
   }
 ]
 
 prestige.json:
 {
   "enabled": true,
-  "minClicks": 1000,
+  "minClicksRequired": 1000,
+  "clickRequirementIncrease": 500,
   "multiplierPerLevel": 1.5,
-  "resetOnPrestige": ["upgrades", "clicks"]
+  "resetOnPrestige": ["upgrades", "clicks"],
+  "keepOnPrestige": ["crypto", "storage", "prestigeLevel"],
+  "description": "Reboot your AI empire for a permanent multiplier boost"
 }
 
 sprites.json:
 {
-  "ai-orb": {
+  "primary-core": {
     "svg": "data:image/svg+xml,...",
-    "width": 64,
-    "height": 64
-  }
+    "width": 128,
+    "height": 128,
+    "animation": "pulse"
+  },
+  "basic-cpu": { "svg": "...", "width": 32, "height": 32 },
+  "advanced-gpu": { "svg": "...", "width": 32, "height": 32 },
+  "neural-net": { "svg": "...", "width": 48, "height": 48 },
+  "llm": { "svg": "...", "width": 48, "height": 48 },
+  "rag-system": { "svg": "...", "width": 40, "height": 40 },
+  "quantum-core": { "svg": "...", "width": 64, "height": 64 }
 }
+
+skills.json (8 SKILLS):
+[
+  {
+    "id": "quick_cash",
+    "name": "Quick Cash",
+    "description": "Instantly gain 10% of your total crypto",
+    "cooldown": 60,
+    "icon": "coin",
+    "unlockCondition": { "type": "upgrades_owned", "value": 5 }
+  },
+  {
+    "id": "click_burst",
+    "name": "Click Burst",
+    "description": "10x click power for 30 seconds",
+    "cooldown": 120,
+    "icon": "click",
+    "unlockCondition": { "type": "upgrades_owned", "value": 10 }
+  },
+  {
+    "id": "idle_boost",
+    "name": "Idle Boost",
+    "description": "2x idle generation for 60 seconds",
+    "cooldown": 180,
+    "icon": "clock",
+    "unlockCondition": { "type": "clicks", "value": 500 }
+  },
+  {
+    "id": "mega_click",
+    "name": "Mega Click",
+    "description": "100x click power for 15 seconds",
+    "cooldown": 300,
+    "icon": "star",
+    "unlockCondition": { "type": "achievements", "value": 3 }
+  },
+  {
+    "id": "crypto_rain",
+    "name": "Crypto Rain",
+    "description": "Gain 1000 crypto instantly",
+    "cooldown": 240,
+    "icon": "cloud",
+    "unlockCondition": { "type": "crypto_total", "value": 10000 }
+  },
+  {
+    "id": "time_warp",
+    "name": "Time Warp",
+    "description": "Gain 1 hour of idle progress instantly",
+    "cooldown": 600,
+    "icon": "warp",
+    "unlockCondition": { "type": "prestige_level", "value": 1 }
+  },
+  {
+    "id": "skill_sharpen",
+    "name": "Skill Sharpen",
+    "description": "Reduce all skill cooldowns by 50% for 2 minutes",
+    "cooldown": 300,
+    "icon": "sharpen",
+    "unlockCondition": { "type": "achievements", "value": 5 }
+  },
+  {
+    "id": "prestige_gift",
+    "name": "Prestige Gift",
+    "description": "Gain crypto equal to 10% of lifetime crypto on prestige",
+    "cooldown": 0,
+    "icon": "gift",
+    "unlockCondition": { "type": "prestige_level", "value": 3 }
+  }
+]
+
+events.json (8 BOOST TYPES):
+[
+  {
+    "id": "double_crypto",
+    "name": "2x Crypto",
+    "type": "multiplier",
+    "effect": { "crypto": 2 },
+    "duration": 30,
+    "rarity": "common"
+  },
+  {
+    "id": "instant_crypto",
+    "name": "+100 Crypto",
+    "type": "instant",
+    "effect": { "crypto": 100 },
+    "duration": 0,
+    "rarity": "common"
+  },
+  {
+    "id": "double_clicks",
+    "name": "2x Clicks",
+    "type": "multiplier",
+    "effect": { "clickPower": 2 },
+    "duration": 60,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "triple_crypto",
+    "name": "3x Crypto",
+    "type": "multiplier",
+    "effect": { "crypto": 3 },
+    "duration": 15,
+    "rarity": "rare"
+  },
+  {
+    "id": "double_compute",
+    "name": "2x Compute",
+    "type": "multiplier",
+    "effect": { "compute": 2 },
+    "duration": 45,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "instant_crypto_big",
+    "name": "+500 Crypto",
+    "type": "instant",
+    "effect": { "crypto": 500 },
+    "duration": 0,
+    "rarity": "rare"
+  },
+  {
+    "id": "credits_boost",
+    "name": "+50 Credits",
+    "type": "instant",
+    "effect": { "credits": 50 },
+    "duration": 0,
+    "rarity": "uncommon"
+  },
+  {
+    "id": "five_x_crypto",
+    "name": "5x Crypto",
+    "type": "multiplier",
+    "effect": { "crypto": 5 },
+    "duration": 10,
+    "rarity": "legendary"
+  }
+]
 
 ================================================================
 10. FILE MANIFEST
@@ -438,18 +814,75 @@ HOME PANEL:
 - animate.css pulse animation working
 
 TOP HUD:
-- Shows all 4 currencies with rates
-- Clickable -> opens DetailsModal
-- DetailsModal is full-width, scrollable
+- Shows all 4 currencies with rates (Crypto prominent)
+- Clickable -> opens StatsModal
+- Active boosts shown as icons
+- Click ANYWHERE on HUD opens Stats
+
+NAV BAR:
+- Stats button at top (opens StatsModal)
+- Home, Shop, Prestige, Achievements, Settings buttons
+- Collapsible with smooth transition
+
+PRIMARY CPU (Home Panel):
+- Pulsating SVG animation
+- Click generates currency (5% of auto income)
+- Random boosts appear around Core every 20-40 seconds
+- Click boost to collect
+- Active boosts shown near Core
+
+RANDOM EVENTS:
+- Boosts spawn around Primary CPU every 20-40 seconds
+- 8 boost types with different rarities
+- Click to collect instantly
+- Temporary multiplier or instant gain
+- Notification when boost collected
+
+STATS MODAL (opened from TopHUD or Nav button):
+- Currency Overview section
+- Income Sources section
+- Click Reward section (base + modifiers)
+- Temporary Modifiers section (active boosts)
+- Permanent Modifiers section (prestige, achievements)
+- Active Boosts section with remaining time
 
 GAMEPLAY:
 - Idle generation works (resources accumulate without clicking)
-- Shop opens in GameContainer panel
-- 12 upgrades visible across categories
-- Can purchase upgrades
-- Upgrade costs scale after purchase
-- Achievements unlock at milestones
-- Prestige/reboot works
+- Shop panel: 12 upgrades across 4 categories visible
+- Shop category filter works (Systems, AI Models, Extensions, Auto)
+- Can purchase upgrades (cost deducted, owned count increases)
+- Upgrade costs scale after purchase (exponential)
+- Achievements panel: 10 milestones visible
+- Achievement progress tracked and rewards given
+- Prestige panel: shows current level, multiplier, progress
+- Prestige/reboot works (resets upgrades, keeps crypto + level)
+- Settings panel: export/import save, reset button works
+
+SHOP PANEL CONTENT:
+- 12 upgrades: Basic CPU, Advanced GPU, Neural Network, GPT-3.5, GPT-4, RAG System, API Access, Parallel Processing, Quantum Core, Auto Trainer, Storage Array, Script Kiddie
+- 4 categories: Systems, AI Models, Extensions, Auto
+- Each upgrade shows: name, description, cost, effect, owned count
+
+ACHIEVEMENTS PANEL CONTENT:
+- 10 achievements: First Click, Getting Started, Dedicated Clicker, First Purchase, Crypto Millionaire, Crypto Tycoon, Collector, First Reboot, Idle Master, Ascension
+- Each shows: name, description, progress bar, reward
+- Locked achievements grayed out
+- Unlocked achievements highlighted with checkmark
+
+PRESTIGE PANEL CONTENT:
+- Current prestige level display
+- Current multiplier (1.5^level)
+- Progress to next prestige (1000 + 500*level clicks required)
+- Reset confirmation dialog
+- Shows what gets reset vs kept
+- Reboot button
+
+SETTINGS PANEL CONTENT:
+- Sound toggle (on/off)
+- Reset Progress button with confirmation
+- Export Save (JSON download)
+- Import Save (JSON upload)
+- Version: 1.0.0
 
 ACTION BAR:
 - 5 slots visible at bottom
@@ -478,18 +911,26 @@ CONFIG:
 ================================================================
 
 - Zero build: Open index.html with no server
-- Layout: TopHUD, collapsible NavBar, GameContainer, ActionBar all visible
-- Navigation: Left panels work (Home default, Shop, Prestige, Achievements, Settings)
-- CPU Core: Home panel has pulsating clickable that generates 5% of auto income
-- TopHUD: Clickable, opens full-width details modal
-- ActionBar: 5 slots visible at bottom for future use
-- Playable: Click CPU Core gains resources
-- Upgradeable: Buy upgrades in Shop panel
+- Layout: TopHUD, NavBar with Stats button, GameContainer, ActionBar all visible
+- TopHUD: Fully clickable, opens StatsModal, shows 4 currencies with rates
+- NavBar: Stats button at top, 5 navigation buttons, collapsible
+- Primary CPU: Home panel has pulsating clickable that generates 5% of auto income
+- ActionBar: 5 configurable skill slots
+- Skills: 8 unlockable skills from shop milestones and achievements
+- Random Events: Boosts spawn every 20-40s around Primary CPU, click to collect
+- Shop: 12 upgrades with milestone skill rewards, purchasable, costs scale
+- Achievements: 10 milestones, progress tracking, rewards
+- Prestige: Level display, multiplier, reboot mechanic
+- Settings: Export/import save, reset, version
+- Stats Modal: Shows currencies, income sources, click reward, modifiers, boosts
+- Playable: Click Primary CPU gains resources
+- Upgradeable: Buy upgrades in Shop panel, unlock skills at milestones
 - Saveable: Refresh keeps progress
 - Configurable: Edit JSON changes game
-- Animated: Animate.css pulse on CPU Core working
+- Animated: Animate.css pulse on Primary CPU working
 - Mobile: Responsive on all devices
 - No canvas: Pure DOM rendering
+- MVP Complete: All features fully functional with content
 
 ---
 
