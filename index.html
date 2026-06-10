@@ -922,7 +922,9 @@
           if (this.isRunning) return;
           this.isRunning = true;
           this.lastFrameTime = performance.now();
-          this.loop();
+          // Start the loop with current timestamp
+          const now = performance.now();
+          this.loop(now);
         }
         
         stop() {
@@ -939,6 +941,11 @@
           
           const deltaTime = (timestamp - this.lastFrameTime) / 1000;
           this.lastFrameTime = timestamp;
+          
+          // Debug: log every 100 frames
+          if (this.frameCount % 100 === 0) {
+            console.log('Game loop running - frame:', this.frameCount, 'delta:', deltaTime.toFixed(3));
+          }
           
           this.tickAccumulator += deltaTime;
           const tickDuration = 1 / this.tickRate;
