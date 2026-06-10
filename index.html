@@ -1520,7 +1520,7 @@
               
               // Expand first category
               if (this.categories.length > 0) {
-                this.$set(this.expandedCategories, this.categories[0].codeName, true);
+                this.expandedCategories[this.categories[0].codeName] = true;
               }
             }
           },
@@ -1541,7 +1541,7 @@
             this.activeTab = tabId;
           },
           toggleCategory(codeName) {
-            this.$set(this.expandedCategories, codeName, !this.expandedCategories[codeName]);
+            this.expandedCategories[codeName] = !this.expandedCategories[codeName];
           },
           getGeneratorsByCategory(category) {
             return this.generators.filter(g => g.category === category);
