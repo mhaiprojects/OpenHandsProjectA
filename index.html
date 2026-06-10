@@ -17,12 +17,24 @@
   <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app">
+  <!-- Fallback content in case Vue doesn't render -->
+  <div id="fallback-ui" style="display: none; padding: 20px; color: white;">
+    <h1>AFK AI - Loading...</h1>
+    <p id="debug-info">Please wait...</p>
+  </div>
+</div>
   
   <!-- Core Systems -->
   <script type="module">
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', async () => {
+      // Global error handler
+      window.onerror = function(msg, url, line, col, error) {
+        console.error('GLOBAL ERROR:', msg, 'at line', line);
+        return true;
+      };
+      
       console.log('AFK AI - Loading game...');
       
       // Global state holder
@@ -1052,13 +1064,23 @@
       // ========================================
       
       console.log('Loading configurations...');
-      window.gameConfig = new ConfigManager();
-      await window.gameConfig.loadAll();
-      console.log('Configurations loaded!');
+      try {
+        window.gameConfig = new ConfigManager();
+        await window.gameConfig.loadAll();
+        console.log('Configurations loaded!');
+      } catch (e) {
+        console.error('Failed to load configs:', e);
+        return;
+      }
       
       console.log('Initializing game state...');
-      window.gameState = new GameState();
-      window.gameState.config = window.gameConfig;
+      try {
+        window.gameState = new GameState();
+        window.gameState.config = window.gameConfig;
+      } catch (e) {
+        console.error('Failed to create GameState:', e);
+        return;
+      }
       
       console.log('Initializing game loop...');
       window.gameLoop = new GameLoop();
@@ -1682,6 +1704,19 @@
       app.mount('#app');
       
       console.log('AFK AI - Game initialized successfully!');
+      
+      // Debug: show game state info
+      setTimeout(() => {
+        if (window.gameConfig && window.gameState) {
+          console.log('Game Config loaded:', window.gameConfig.getAllResources().length, 'resources');
+          console.log('Game State initialized with', Object.keys(window.gameState.state.resources).length, 'resource types');
+          const ts = window.gameState.state.resources.timeShards;
+          console.log('Time Shards quantity:', ts?.quantity || 0);
+        } else {
+          console.error('Game not properly initialized!');
+          document.getElementById('fallback-ui').style.display = 'block';
+        }
+      }, 2000);
     });
   </script>
 </body>
