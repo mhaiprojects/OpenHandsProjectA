@@ -1,0 +1,184 @@
+{
+  "itemRarity": [
+    { "codeName": "common", "displayName": "Common", "color": "#9ca3af", "dropWeight": 50 },
+    { "codeName": "uncommon", "displayName": "Uncommon", "color": "#22c55e", "dropWeight": 30 },
+    { "codeName": "rare", "displayName": "Rare", "color": "#3b82f6", "dropWeight": 12 },
+    { "codeName": "epic", "displayName": "Epic", "color": "#a855f7", "dropWeight": 6 },
+    { "codeName": "legendary", "displayName": "Legendary", "color": "#f97316", "dropWeight": 2 }
+  ],
+  "itemTypes": [
+    { "codeName": "weapon", "displayName": "Weapon", "slot": "weapon", "icon": "⚔️" },
+    { "codeName": "armor", "displayName": "Armor", "slot": "armor", "icon": "🛡️" },
+    { "codeName": "accessory", "displayName": "Accessory", "slot": "accessory", "icon": "💍" },
+    { "codeName": "artifact", "displayName": "Artifact", "slot": "artifact", "icon": "🏺" },
+    { "codeName": "consumable", "displayName": "Consumable", "slot": null, "icon": "🧪" },
+    { "codeName": "ingredient", "displayName": "Ingredient", "slot": null, "icon": "🧬" }
+  ],
+  "items": [
+    {
+      "codeName": "plasmaBlade",
+      "displayName": "Plasma Blade",
+      "description": "A blade forged from stellar plasma",
+      "type": "weapon",
+      "rarity": "uncommon",
+      "icon": "⚔️",
+      "stats": { "resourceGain": 1.1, "dropRate": 1.05 },
+      "equippable": true,
+      "stackable": false
+    },
+    {
+      "codeName": "voidShield",
+      "displayName": "Void Shield",
+      "description": "Protects from dimensional rifts",
+      "type": "armor",
+      "rarity": "rare",
+      "icon": "🛡️",
+      "stats": { "generatorEfficiency": 1.15, "costReduction": 0.95 },
+      "equippable": true,
+      "stackable": false
+    },
+    {
+      "codeName": "cosmicRing",
+      "displayName": "Cosmic Ring",
+      "description": "Channels cosmic energy",
+      "type": "accessory",
+      "rarity": "epic",
+      "icon": "💍",
+      "stats": { "resourceGain": 1.2, "upgradeEffect": 1.1 },
+      "equippable": true,
+      "stackable": false
+    },
+    {
+      "codeName": "timekeepersAmulet",
+      "displayName": "Timekeeper's Amulet",
+      "description": "Bends time around the wearer",
+      "type": "artifact",
+      "rarity": "legendary",
+      "icon": "⏰",
+      "stats": { "resourceGain": 1.3, "generatorEfficiency": 1.2, "dropRate": 1.3 },
+      "equippable": true,
+      "stackable": false
+    },
+    {
+      "codeName": "stellarFragment",
+      "displayName": "Stellar Fragment",
+      "description": "A shard of a dying star",
+      "type": "ingredient",
+      "rarity": "common",
+      "icon": "⭐",
+      "stats": {},
+      "equippable": false,
+      "stackable": true
+    },
+    {
+      "codeName": "quantumCrystal",
+      "displayName": "Quantum Crystal",
+      "description": "Contains unstable quantum energy",
+      "type": "ingredient",
+      "rarity": "uncommon",
+      "icon": "💎",
+      "stats": {},
+      "equippable": false,
+      "stackable": true
+    },
+    {
+      "codeName": "voidEssence",
+      "displayName": "Void Essence",
+      "description": "Essence extracted from the void",
+      "type": "ingredient",
+      "rarity": "rare",
+      "icon": "🌀",
+      "stats": {},
+      "equippable": false,
+      "stackable": true
+    },
+    {
+      "codeName": "boostPotion",
+      "displayName": "Boost Potion",
+      "description": "Temporarily doubles all production",
+      "type": "consumable",
+      "rarity": "rare",
+      "icon": "🧪",
+      "effect": { "type": "temporaryMultiplier", "multiplier": 2.0, "duration": 60 },
+      "equippable": false,
+      "stackable": true
+    },
+    {
+      "codeName": "luckyCharm",
+      "displayName": "Lucky Charm",
+      "description": "Increases drop rates significantly",
+      "type": "consumable",
+      "rarity": "epic",
+      "icon": "🍀",
+      "effect": { "type": "dropRateBoost", "multiplier": 3.0, "duration": 120 },
+      "equippable": false,
+      "stackable": true
+    },
+    {
+      "codeName": "cosmicDust",
+      "displayName": "Cosmic Dust",
+      "description": "Basic crafting material",
+      "type": "ingredient",
+      "rarity": "common",
+      "icon": "✨",
+      "stats": {},
+      "equippable": false,
+      "stackable": true
+    },
+    {
+      "codeName": "nebulaCore",
+      "displayName": "Nebula Core",
+      "description": "Heart of a nebula",
+      "type": "ingredient",
+      "rarity": "epic",
+      "icon": "🌫️",
+      "stats": {},
+      "equippable": false,
+      "stackable": true
+    },
+    {
+      "codeName": "chrononShard",
+      "displayName": "Chronon Shard",
+      "description": "Fragment of crystallized time",
+      "type": "ingredient",
+      "rarity": "rare",
+      "icon": "💠",
+      "stats": {},
+      "equippable": false,
+      "stackable": true
+    },
+    {
+      "codeName": "darkMatterCube",
+      "displayName": "Dark Matter Cube",
+      "description": "Mysterious cubic dark matter",
+      "type": "artifact",
+      "rarity": "legendary",
+      "icon": "🧊",
+      "stats": { "generatorEfficiency": 1.5, "costReduction": 0.8 },
+      "equippable": true,
+      "stackable": false
+    },
+    {
+      "codeName": "wormholeKey",
+      "displayName": "Wormhole Key",
+      "description": "Opens portals to new dimensions",
+      "type": "artifact",
+      "rarity": "epic",
+      "icon": "🗝️",
+      "stats": { "resourceGain": 1.25, "dropRate": 1.25 },
+      "equippable": true,
+      "stackable": false
+    },
+    {
+      "codeName": "antimatterCell",
+      "displayName": "Antimatter Cell",
+      "description": "Stable antimatter containment",
+      "type": "ingredient",
+      "rarity": "legendary",
+      "icon": "⚛️",
+      "stats": {},
+      "equippable": false,
+      "stackable": true
+    }
+  ]
+}

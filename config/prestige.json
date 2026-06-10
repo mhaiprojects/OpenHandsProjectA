@@ -1,0 +1,134 @@
+{
+  "prestigeTiers": [
+    {
+      "codeName": "reset",
+      "displayName": "Reset",
+      "description": "Resets generators and resources but gains permanent bonuses",
+      "icon": "🔄",
+      "color": "#3b82f6"
+    },
+    {
+      "codeName": "transcend",
+      "displayName": "Transcend",
+      "description": "Resets everything including items for powerful bonuses",
+      "icon": "🌟",
+      "color": "#a855f7"
+    },
+    {
+      "codeName": "ascend",
+      "displayName": "Ascend",
+      "description": "Ultimate reset - clears artifacts and prestige for max power",
+      "icon": "✨",
+      "color": "#f97316"
+    }
+  ],
+  "prestigeFormulas": {
+    "baseCalculation": "log10(max(1, totalResourceValue))",
+    "tier1Multiplier": 1.0,
+    "tier2Multiplier": 2.0,
+    "tier3Multiplier": 5.0,
+    "minimumThreshold": 1000
+  },
+  "prestigeBonuses": [
+    {
+      "codeName": "startingResources",
+      "displayName": "Starting Resources",
+      "description": "Start with bonus resources after prestige",
+      "icon": "🎁",
+      "type": "multiplier",
+      "effect": { "resource": "timeShards", "bonus": 100 },
+      "maxLevel": 10,
+      "costPerLevel": 1
+    },
+    {
+      "codeName": "generatorEfficiency",
+      "displayName": "Generator Efficiency",
+      "description": "All generators produce +10% more per prestige level",
+      "icon": "⚙️",
+      "type": "multiplier",
+      "effect": { "multiplierPerLevel": 0.1 },
+      "maxLevel": 20,
+      "costPerLevel": 2
+    },
+    {
+      "codeName": "clickPower",
+      "displayName": "Click Power",
+      "description": "Clicks produce +25% more per prestige level",
+      "icon": "👆",
+      "type": "multiplier",
+      "effect": { "multiplierPerLevel": 0.25 },
+      "maxLevel": 15,
+      "costPerLevel": 1
+    },
+    {
+      "codeName": "costReduction",
+      "displayName": "Cost Reduction",
+      "description": "Generator costs reduced by 5% per prestige level",
+      "icon": "💰",
+      "type": "multiplier",
+      "effect": { "reductionPerLevel": 0.05 },
+      "maxLevel": 15,
+      "costPerLevel": 2
+    },
+    {
+      "codeName": "dropRateBoost",
+      "displayName": "Loot Fortune",
+      "description": "Item drop rates +15% per prestige level",
+      "icon": "📦",
+      "type": "multiplier",
+      "effect": { "multiplierPerLevel": 0.15 },
+      "maxLevel": 10,
+      "costPerLevel": 1
+    },
+    {
+      "codeName": "unlockSpeed",
+      "displayName": "Quick Start",
+      "description": "Unlock generators 10% faster per prestige level",
+      "icon": "🚀",
+      "type": "multiplier",
+      "effect": { "reductionPerLevel": 0.1 },
+      "maxLevel": 10,
+      "costPerLevel": 1
+    },
+    {
+      "codeName": "offlineEfficiency",
+      "displayName": "Time Dilation",
+      "description": "Offline gains +20% per prestige level",
+      "icon": "📴",
+      "type": "multiplier",
+      "effect": { "multiplierPerLevel": 0.2 },
+      "maxLevel": 10,
+      "costPerLevel": 2
+    },
+    {
+      "codeName": "globalBoost",
+      "displayName": "Cosmic Power",
+      "description": "All production +5% per prestige level",
+      "icon": "🌌",
+      "type": "multiplier",
+      "effect": { "multiplierPerLevel": 0.05 },
+      "maxLevel": 25,
+      "costPerLevel": 3
+    }
+  ],
+  "prestigeTierRequirements": {
+    "tier1": {
+      "name": "Reset",
+      "minimumResourceValue": 1000,
+      "bonusCurrency": "prestigeShards",
+      "formula": "floor(log10(totalResource / 1000)) + 1"
+    },
+    "tier2": {
+      "name": "Transcend",
+      "minimumResourceValue": 100000,
+      "bonusCurrency": "transcendPoints",
+      "formula": "floor(log10(totalResource / 100000)) + 1"
+    },
+    "tier3": {
+      "name": "Ascend",
+      "minimumResourceValue": 10000000,
+      "bonusCurrency": "ascensionEssence",
+      "formula": "floor(log10(totalResource / 10000000)) + 1"
+    }
+  }
+}

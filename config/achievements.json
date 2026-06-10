@@ -1,0 +1,124 @@
+{
+  "achievements": [
+    {
+      "codeName": "firstShard",
+      "displayName": "First Steps",
+      "description": "Collect your first Time Shard",
+      "icon": "⏱️",
+      "requirement": { "type": "resource", "resource": "timeShards", "amount": 1 },
+      "reward": { "type": "resource", "resource": "timeShards", "amount": 10 }
+    },
+    {
+      "codeName": "hundredShards",
+      "displayName": "Getting Started",
+      "description": "Accumulate 100 Time Shards",
+      "icon": "💯",
+      "requirement": { "type": "resource", "resource": "timeShards", "amount": 100 },
+      "reward": { "type": "resource", "resource": "timeShards", "amount": 50 }
+    },
+    {
+      "codeName": "thousandShards",
+      "displayName": "Time Keeper",
+      "description": "Accumulate 1,000 Time Shards",
+      "icon": "⏰",
+      "requirement": { "type": "resource", "resource": "timeShards", "amount": 1000 },
+      "reward": { "type": "resource", "resource": "cosmicEnergy", "amount": 100 }
+    },
+    {
+      "codeName": "firstGenerator",
+      "displayName": "Automation Begins",
+      "description": "Purchase your first generator",
+      "icon": "🤖",
+      "requirement": { "type": "generatorCount", "count": 1 },
+      "reward": { "type": "item", "item": "stellarFragment", "quantity": 5 }
+    },
+    {
+      "codeName": "tenGenerators",
+      "displayName": "Growing Fleet",
+      "description": "Own 10 generators total",
+      "icon": "🚀",
+      "requirement": { "type": "generatorCount", "count": 10 },
+      "reward": { "type": "item", "item": "plasmaBlade", "quantity": 1 }
+    },
+    {
+      "codeName": "fiftyGenerators",
+      "displayName": "Industrial Complex",
+      "description": "Own 50 generators total",
+      "icon": "🏭",
+      "requirement": { "type": "generatorCount", "count": 50 },
+      "reward": { "type": "item", "item": "voidShield", "quantity": 1 }
+    },
+    {
+      "codeName": "firstPrestige",
+      "displayName": "Rebirth",
+      "description": "Perform your first prestige",
+      "icon": "🔄",
+      "requirement": { "type": "prestige", "count": 1 },
+      "reward": { "type": "resource", "resource": "timeShards", "amount": 1000 }
+    },
+    {
+      "codeName": "allCategories",
+      "displayName": "Diversified",
+      "description": "Own at least one of each generator category",
+      "icon": "🎯",
+      "requirement": { "type": "allCategories" },
+      "reward": { "type": "item", "item": "cosmicRing", "quantity": 1 }
+    },
+    {
+      "codeName": "millionPPS",
+      "displayName": "Millionaire",
+      "description": "Reach 1,000,000 PPS",
+      "icon": "💰",
+      "requirement": { "type": "pps", "amount": 1000000 },
+      "reward": { "type": "resource", "resource": "quantumFlux", "amount": 500 }
+    },
+    {
+      "codeName": "click1000",
+      "displayName": "Clicker",
+      "description": "Click 1,000 times",
+      "icon": "👆",
+      "requirement": { "type": "totalClicks", "count": 1000 },
+      "reward": { "type": "item", "item": "boostPotion", "quantity": 3 }
+    },
+    {
+      "codeName": "firstArtifact",
+      "displayName": "Collector",
+      "description": "Obtain your first artifact",
+      "icon": "🏺",
+      "requirement": { "type": "artifactCount", "count": 1 },
+      "reward": { "type": "item", "item": "wormholeKey", "quantity": 1 }
+    },
+    {
+      "codeName": "deepVoid",
+      "displayName": "Deep Void Explorer",
+      "description": "Reach 10,000 Dark Matter",
+      "icon": "🌑",
+      "requirement": { "type": "resource", "resource": "darkMatter", "amount": 10000 },
+      "reward": { "type": "resource", "resource": "voidEssence", "amount": 100 }
+    },
+    {
+      "codeName": "quantumMaster",
+      "displayName": "Quantum Master",
+      "description": "Reach 5,000 Quantum Flux",
+      "icon": "⚛️",
+      "requirement": { "type": "resource", "resource": "quantumFlux", "amount": 5000 },
+      "reward": { "type": "item", "item": "quantumCrystal", "quantity": 10 }
+    },
+    {
+      "codeName": "allUpgrades",
+      "displayName": "Perfectionist",
+      "description": "Unlock all available upgrades",
+      "icon": "✨",
+      "requirement": { "type": "allUpgrades" },
+      "reward": { "type": "item", "item": "timekeepersAmulet", "quantity": 1 }
+    },
+    {
+      "codeName": "maxTier",
+      "displayName": "Maximum Power",
+      "description": "Own 100 of the highest tier generator",
+      "icon": "🔝",
+      "requirement": { "type": "generatorQuantity", "codeName": "singularityManipulator", "quantity": 100 },
+      "reward": { "type": "resource", "resource": "singularityDust", "amount": 100 }
+    }
+  ]
+}

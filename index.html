@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AFK AI - Idle Progressive Game Framework</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  
+  <!-- Core Systems -->
+  <script type="module">
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('AFK AI - Loading game...');
+      
+      // Global state holder
+      window.gameConfig = null;
+      window.gameState = null;
+      window.gameLoop = null;
+      
+      // ========================================
+      // Import all modules dynamically
+      // ========================================
+      
+      // Core modules (inline for CDN compatibility)
+      
+      // EventBus
+      class EventBus {
+        constructor() {
+          this.listeners = new Map();
+          this.eventHistory = [];
+          this.maxHistorySize = 100;
+        }
+        
+        on(event, callback) {
+          if (!this.listeners.has(event)) {
+            this.listeners.set(event, new Set());
+          }
+          this.listeners.get(event).add(callback);
+          return () => this.off(event, callback);
+        }
+        
+        once(event, callback) {
+          const wrapper = (data) => {
+            this.off(event, wrapper);
+            callback(data);
+          };
+          this.on(event, wrapper);
+        }
+        
+        off(event, callback) {
+          if (this.listeners.has(event)) {
+            this.listeners.get(event).delete(callback);
+          }
+        }
+        
+        emit(event, data = null) {
+          this.eventHistory.push({ event, data, timestamp: Date.now() });
+          if (this.eventHistory.length > this.maxHistorySize) {
+            this.eventHistory.shift();
+          }
+          if (this.listeners.has(event)) {
+            this.listeners.get(event).forEach(callback => {
+              try {
+                callback(data);
+              } catch (error) {
+                console.error(`EventBus error in ${event}:`, error);
+              }
+            });
+          }
+        }
+        
+        clear() {
+          this.listeners.clear();
+        }
+      }
+      
+      const GameEvents = {
+        RESOURCE_CHANGED: 'resourceChanged',
+        RESOURCE_GAINED: 'resourceGained',
+        GENERATOR_PURCHASED: 'generatorPurchased',
+        UPGRADE_PURCHASED: 'upgradePurchased',
+        CHARACTER_ACTIVATED: 'characterActivated',
+        ITEM_DROPPED: 'itemDropped',
+        ACHIEVEMENT_UNLOCKED: 'achievementUnlocked',
+        RANDOM_EVENT_START: 'randomEventStart',
+        PRESTIGE_PERFORMED: 'prestigePerformed',
+        GAME_LOADED: 'gameLoaded',
+        GAME_SAVED: 'gameSaved',
+        GAME_RESET: 'gameReset',
+        GAME_TICK: 'gameTick',
+        OFFLINE_PROGRESS: 'offlineProgress',
+        CLICK_PERFORMED: 'clickPerformed'
+      };
+      
+      window.EventBus = EventBus;
+      window.GameEvents = GameEvents;
+      
+      // ConfigManager
+      class ConfigManager {
+        constructor() {
+          this.configs = {};
+          this.loaded = false;
+          this.configPaths = {
+            resources: 'config/resources.json',
+            generators: 'config/generators.json',
+            upgrades: 'config/upgrades.json',
+            characters: 'config/characters.json',
+            items: 'config/items.json',
+            achievements: 'config/achievements.json',
+            events: 'config/events.json',
+            prestige: 'config/prestige.json'
+          };
+        }
+        
+        async loadAll() {
+          const loadPromises = Object.entries(this.configPaths).map(async ([key, path]) => {
+            try {
+              const response = await fetch(path);
+              if (!response.ok) throw new Error(`Failed to load ${path}`);
+              this.configs[key] = await response.json();
+            } catch (error) {
+              console.error(`ConfigManager: Error loading ${path}`, error);
+              this.configs[key] = this.getDefaultConfig(key);
+            }
+          });
+          await Promise.all(loadPromises);
+          this.loaded = true;
+          return this.configs;
+        }
+        
+        getDefaultConfig(key) {
+          const defaults = {
+            resources: { resources: [] },
+            generators: { generators: [], generatorCategories: [] },
+            upgrades: { upgrades: [], upgradeCategories: [] },
+            characters: { characters: [], characterClasses: [], equipmentSlots: [] },
+            items: { items: [], itemRarity: [], itemTypes: [] },
+            achievements: { achievements: [] },
+            events: { events: [], eventTypes: [] },
+            prestige: { prestigeTiers: [], prestigeBonuses: [] }
+          };
+          return defaults[key] || {};
+        }
+        
+        get(key) { return this.configs[key]; }
+        getAll() { return this.configs; }
+        
+        getResource(codeName) {
+          const resources = this.configs.resources?.resources || [];
+          return resources.find(r => r.codeName === codeName) || null;
+        }
+        
+        getAllResources() { return this.configs.resources?.resources || []; }
+        
+        getGenerator(codeName) {
+          const generators = this.configs.generators?.generators || [];
+          return generators.find(g => g.codeName === codeName) || null;
+        }
+        
+        getAllGenerators() { return this.configs.generators?.generators || []; }
+        
+        getGeneratorsByCategory(category) {
+          return this.getAllGenerators().filter(g => g.category === category);
+        }
+        
+        getGeneratorCategories() { return this.configs.generators?.generatorCategories || []; }
+        
+        getUpgrade(codeName) {
+          const upgrades = this.configs.upgrades?.upgrades || [];
+          return upgrades.find(u => u.codeName === codeName) || null;
+        }
+        
+        getAllUpgrades() { return this.configs.upgrades?.upgrades || []; }
+        
+        getUpgradesByCategory(category) {
+          return this.getAllUpgrades().filter(u => u.category === category);
+        }
+        
+        getUpgradeCategories() { return this.configs.upgrades?.upgradeCategories || []; }
+        
+        getCharacter(codeName) {
+          const characters = this.configs.characters?.characters || [];
+          return characters.find(c => c.codeName === codeName) || null;
+        }
+        
+        getAllCharacters() { return this.configs.characters?.characters || []; }
+        
+        getCharacterClasses() { return this.configs.characters?.characterClasses || []; }
+        
+        getEquipmentSlots() { return this.configs.characters?.equipmentSlots || []; }
+        
+        getItem(codeName) {
+          const items = this.configs.items?.items || [];
+          return items.find(i => i.codeName === codeName) || null;
+        }
+        
+        getAllItems() { return this.configs.items?.items || []; }
+        
+        getItemsByType(type) { return this.getAllItems().filter(i => i.type === type); }
+        getItemsByRarity(rarity) { return this.getAllItems().filter(i => i.rarity === rarity); }
+        getItemRarities() { return this.configs.items?.itemRarity || []; }
+        
+        getAllAchievements() { return this.configs.achievements?.achievements || []; }
+        
+        getAllEvents() { return this.configs.events?.events || []; }
+        
+        getPrestigeTiers() { return this.configs.prestige?.prestigeTiers || []; }
+        getPrestigeBonuses() { return this.configs.prestige?.prestigeBonuses || []; }
+        getPrestigeTierRequirements() { return this.configs.prestige?.prestigeTierRequirements || {}; }
+      }
+      
+      window.ConfigManager = ConfigManager;
+      
+      // SaveManager
+      class SaveManager {
+        constructor() {
+          this.storageKey = 'afk_ai_game_save';
+          this.backupKey = 'afk_ai_game_backup';
+          this.autoSaveInterval = 10000;
+          this.autoSaveTimer = null;
+        }
+        
+        initAutoSave(getSaveData) {
+          this.stopAutoSave();
+          this.autoSaveTimer = setInterval(() => {
+            const data = getSaveData();
+            if (data) this.save(data);
+          }, this.autoSaveInterval);
+        }
+        
+        stopAutoSave() {
+          if (this.autoSaveTimer) {
+            clearInterval(this.autoSaveTimer);
+            this.autoSaveTimer = null;
+          }
+        }
+        
+        save(gameState, label = 'auto') {
+          try {
+            const saveData = {
+              version: '2.0.0',
+              timestamp: Date.now(),
+              saveId: `save_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              data: gameState
+            };
+            localStorage.setItem(this.storageKey, JSON.stringify(saveData));
+            return true;
+          } catch (error) {
+            console.error('Save failed:', error);
+            return false;
+          }
+        }
+        
+        load() {
+          try {
+            const jsonString = localStorage.getItem(this.storageKey);
+            if (!jsonString) return null;
+            const saveData = JSON.parse(jsonString);
+            return saveData?.data || null;
+          } catch (error) {
+            console.error('Load failed:', error);
+            return null;
+          }
+        }
+        
+        export(gameState) {
+          const saveData = {
+            version: '2.0.0',
+            timestamp: Date.now(),
+            data: gameState
+          };
+          return btoa(unescape(encodeURIComponent(JSON.stringify(saveData))));
+        }
+        
+        import(base64String) {
+          try {
+            const jsonString = decodeURIComponent(escape(atob(base64String)));
+            const saveData = JSON.parse(jsonString);
+            return saveData?.data || null;
+          } catch (error) {
+            console.error('Import failed:', error);
+            return null;
+          }
+        }
+        
+        deleteSave() {
+          localStorage.removeItem(this.storageKey);
+        }
+        
+        calculateOfflineProgress(gameState, maxOfflineTime = 86400) {
+          if (!gameState.lastPlayed) return { enabled: false };
+          const now = Date.now();
+          const offlineSeconds = Math.min(Math.floor((now - gameState.lastPlayed) / 1000), maxOfflineTime);
+          if (offlineSeconds < 60) return { enabled: false };
+          const pps = gameState.pps || 0;
+          const offlineMultiplier = gameState.offlineMultiplier || 1.0;
+          return {
+            enabled: true,
+            offlineSeconds,
+            resourcesGained: pps * offlineSeconds * offlineMultiplier,
+            pps,
+            multiplier: offlineMultiplier
+          };
+        }
+        
+        hasSave() { return localStorage.getItem(this.storageKey) !== null; }
+      }
+      
+      window.SaveManager = SaveManager;
+      
+      // GameState
+      class GameState {
+        constructor() {
+          this.eventBus = new EventBus();
+          this.config = window.gameConfig;
+          this.tickRate = 10;
+          this.lastTick = 0;
+          this.lastPlayed = Date.now();
+          this.state = this.getDefaultState();
+          this.multipliers = this.getDefaultMultipliers();
+        }
+        
+        getDefaultState() {
+          const resources = (window.gameConfig?.getAllResources() || []);
+          const generators = (window.gameConfig?.getAllGenerators() || []);
+          const characters = (window.gameConfig?.getAllCharacters() || []);
+          const upgrades = (window.gameConfig?.getAllUpgrades() || []);
+          const items = (window.gameConfig?.getAllItems() || []);
+          
+          return {
+            resources: resources.reduce((acc, r) => {
+              acc[r.codeName] = { quantity: r.baseValue || 0, totalEarned: 0, totalSpent: 0 };
+              return acc;
+            }, {}),
+            
+            generators: generators.reduce((acc, g) => {
+              acc[g.codeName] = { quantityPurchased: 0, totalSpend: 0, totalEarned: 0 };
+              return acc;
+            }, {}),
+            
+            characters: characters.reduce((acc, c) => {
+              acc[c.codeName] = {
+                unlocked: c.unlockRequirement === null,
+                activated: false,
+                level: 1,
+                equipment: { weapon: null, armor: null, accessory: null, artifact: null }
+              };
+              return acc;
+            }, {}),
+            
+            upgrades: upgrades.reduce((acc, u) => {
+              acc[u.codeName] = { purchased: false, purchaseCount: 0 };
+              return acc;
+            }, {}),
+            
+            inventory: items.reduce((acc, i) => {
+              acc[i.codeName] = 0;
+              return acc;
+            }, {}),
+            
+            achievements: {},
+            
+            prestige: {
+              tier1: { points: 0, bonuses: {}, timesPerformed: 0 },
+              tier2: { points: 0, timesPerformed: 0 },
+              tier3: { points: 0, timesPerformed: 0 }
+            },
+            
+            statistics: {
+              totalClicks: 0,
+              totalPlayTime: 0,
+              highestPPS: 0,
+              generatorsOwned: 0,
+              itemsCollected: 0,
+              achievementsUnlocked: 0
+            },
+            
+            activeEvents: [],
+            temporaryBoosts: [],
+            lastPlayed: Date.now()
+          };
+        }
+        
+        getDefaultMultipliers() {
+          return {
+            global: 1.0,
+            click: 1.0,
+            resource: 1.0,
+            generator: {},
+            category: {},
+            prestige: 1.0,
+            dropRate: 1.0
+          };
+        }
+        
+        init(savedState = null) {
+          if (savedState) {
+            // Merge saved state with defaults
+            this.state = { ...this.getDefaultState(), ...savedState };
+          }
+          this.calculateAllMultipliers();
+          this.checkUnlocks();
+        }
+        
+        calculateAllMultipliers() {
+          this.multipliers = this.getDefaultMultipliers();
+          
+          // Apply prestige bonuses
+          const tier1 = this.state.prestige?.tier1?.bonuses || {};
+          if (tier1.generatorEfficiency) {
+            this.multipliers.global *= (1 + tier1.generatorEfficiency * 0.1);
+          }
+          if (tier1.clickPower) {
+            this.multipliers.click *= (1 + tier1.clickPower * 0.25);
+          }
+          if (tier1.globalBoost) {
+            this.multipliers.global *= (1 + tier1.globalBoost * 0.05);
+          }
+          
+          // Apply character bonuses
+          const characters = window.gameConfig?.getAllCharacters() || [];
+          for (const char of characters) {
+            if (this.state.characters[char.codeName]?.activated) {
+              const stats = char.baseStats || {};
+              this.multipliers.resource *= (stats.resourceGain || 1);
+              this.multipliers.global *= (stats.generatorEfficiency || 1);
+            }
+          }
+          
+          // Apply upgrade bonuses
+          const upgrades = window.gameConfig?.getAllUpgrades() || [];
+          for (const upgrade of upgrades) {
+            const state = this.state.upgrades[upgrade.codeName];
+            if (state?.purchased || state?.purchaseCount > 0) {
+              const effect = upgrade.effect || {};
+              if (effect.type === 'globalMultiplier') {
+                this.multipliers.global *= effect.multiplier;
+              } else if (effect.type === 'clickMultiplier') {
+                this.multipliers.click *= effect.multiplier;
+              } else if (effect.type === 'categoryMultiplier') {
+                this.multipliers.category[effect.category] = (this.multipliers.category[effect.category] || 1) * effect.multiplier;
+              }
+            }
+          }
+          
+          // Apply active boosts
+          const now = Date.now();
+          for (const boost of (this.state.temporaryBoosts || [])) {
+            if (boost.endTime > now) {
+              if (boost.type === 'globalMultiplier') {
+                this.multipliers.global *= boost.multiplier;
+              }
+            }
+          }
+        }
+        
+        checkUnlocks() {
+          const generators = window.gameConfig?.getAllGenerators() || [];
+          const characters = window.gameConfig?.getAllCharacters() || [];
+          
+          for (const gen of generators) {
+            if (gen.unlockRequirement) {
+              const req = gen.unlockRequirement;
+              // Generator is unlocked if requirement met
+            }
+          }
+          
+          for (const char of characters) {
+            if (char.unlockRequirement) {
+              const req = char.unlockRequirement;
+              if (this.state.generators[req.generator]?.quantityPurchased >= req.quantity) {
+                this.state.characters[char.codeName].unlocked = true;
+              }
+            }
+          }
+        }
+        
+        isGeneratorUnlocked(codeName) {
+          const gen = window.gameConfig?.getGenerator(codeName);
+          if (!gen || !gen.unlockRequirement) return true;
+          const req = gen.unlockRequirement;
+          return this.state.generators[req.generator]?.quantityPurchased >= req.quantity;
+        }
+        
+        isUpgradeUnlocked(codeName) {
+          const upgrade = window.gameConfig?.getUpgrade(codeName);
+          if (!upgrade || !upgrade.unlockRequirement) return true;
+          const req = upgrade.unlockRequirement;
+          return this.state.generators[req.generator]?.quantityPurchased >= req.quantity;
+        }
+        
+        calculatePPS() {
+          let totalPPS = 0;
+          const generators = window.gameConfig?.getAllGenerators() || [];
+          
+          for (const gen of generators) {
+            if (!this.isGeneratorUnlocked(gen.codeName)) continue;
+            const genState = this.state.generators[gen.codeName];
+            const quantity = genState?.quantityPurchased || 0;
+            if (quantity <= 0) continue;
+            
+            let pps = gen.basePPS * quantity;
+            
+            if (this.multipliers.category[gen.category]) {
+              pps *= this.multipliers.category[gen.category];
+            }
+            pps *= this.multipliers.global;
+            
+            totalPPS += pps;
+          }
+          
+          return totalPPS * this.multipliers.prestige;
+        }
+        
+        getPPSBreakdown() {
+          const breakdown = {};
+          const generators = window.gameConfig?.getAllGenerators() || [];
+          
+          for (const gen of generators) {
+            if (!this.isGeneratorUnlocked(gen.codeName)) continue;
+            const genState = this.state.generators[gen.codeName];
+            const quantity = genState?.quantityPurchased || 0;
+            if (quantity <= 0) continue;
+            
+            let pps = gen.basePPS * quantity;
+            if (this.multipliers.category[gen.category]) pps *= this.multipliers.category[gen.category];
+            pps *= this.multipliers.global;
+            
+            breakdown[gen.codeName] = {
+              displayName: gen.displayName,
+              quantity,
+              pps,
+              percentage: 0
+            };
+          }
+          
+          const total = Object.values(breakdown).reduce((sum, g) => sum + g.pps, 0);
+          for (const key in breakdown) {
+            breakdown[key].percentage = total > 0 ? (breakdown[key].pps / total) * 100 : 0;
+          }
+          
+          return breakdown;
+        }
+        
+        getGeneratorCost(codeName) {
+          const gen = window.gameConfig?.getGenerator(codeName);
+          if (!gen) return {};
+          
+          const quantity = this.state.generators[codeName]?.quantityPurchased || 0;
+          const costMultiplier = Math.pow(gen.costMultiplier, quantity);
+          
+          // Apply cost reduction from upgrades
+          let reduction = 1;
+          const upgrades = window.gameConfig?.getAllUpgrades() || [];
+          for (const upgrade of upgrades) {
+            if (upgrade.effect?.type === 'costReduction' && this.state.upgrades[upgrade.codeName]?.purchased) {
+              reduction *= upgrade.effect.multiplier;
+            }
+          }
+          
+          const costs = {};
+          for (const costRes of (gen.costResources || [])) {
+            costs[costRes.resource] = gen.baseCost * costRes.multiplier * costMultiplier * reduction;
+          }
+          
+          return costs;
+        }
+        
+        canAffordGenerator(codeName) {
+          const costs = this.getGeneratorCost(codeName);
+          for (const resource in costs) {
+            if ((this.state.resources[resource]?.quantity || 0) < costs[resource]) {
+              return false;
+            }
+          }
+          return true;
+        }
+        
+        purchaseGenerator(codeName) {
+          if (!this.isGeneratorUnlocked(codeName)) return false;
+          if (!this.canAffordGenerator(codeName)) return false;
+          
+          const costs = this.getGeneratorCost(codeName);
+          
+          for (const resource in costs) {
+            this.state.resources[resource].quantity -= costs[resource];
+            this.state.resources[resource].totalSpent += costs[resource];
+          }
+          
+          this.state.generators[codeName].quantityPurchased++;
+          this.state.statistics.generatorsOwned++;
+          
+          this.eventBus.emit(GameEvents.GENERATOR_PURCHASED, { codeName, quantity: 1 });
+          this.calculateAllMultipliers();
+          
+          return true;
+        }
+        
+        getUpgradeCost(codeName) {
+          const upgrade = window.gameConfig?.getUpgrade(codeName);
+          if (!upgrade) return Infinity;
+          const state = this.state.upgrades[codeName];
+          const purchaseCount = state?.purchaseCount || 0;
+          return upgrade.cost * Math.pow(1.5, purchaseCount);
+        }
+        
+        canAffordUpgrade(codeName) {
+          const upgrade = window.gameConfig?.getUpgrade(codeName);
+          if (!upgrade) return false;
+          const state = this.state.upgrades[codeName];
+          if (state?.purchaseCount >= upgrade.maxPurchases) return false;
+          return (this.state.resources[upgrade.costResource]?.quantity || 0) >= this.getUpgradeCost(codeName);
+        }
+        
+        purchaseUpgrade(codeName) {
+          if (!this.isUpgradeUnlocked(codeName)) return false;
+          if (!this.canAffordUpgrade(codeName)) return false;
+          
+          const upgrade = window.gameConfig?.getUpgrade(codeName);
+          const cost = this.getUpgradeCost(codeName);
+          
+          this.state.resources[upgrade.costResource].quantity -= cost;
+          this.state.resources[upgrade.costResource].totalSpent += cost;
+          
+          this.state.upgrades[codeName].purchaseCount++;
+          if (upgrade.maxPurchases === 1) {
+            this.state.upgrades[codeName].purchased = true;
+          }
+          
+          this.calculateAllMultipliers();
+          this.eventBus.emit(GameEvents.UPGRADE_PURCHASED, { codeName });
+          
+          return true;
+        }
+        
+        handleClick() {
+          const clickValue = 1 * this.multipliers.click * this.multipliers.global;
+          this.state.resources.timeShards.quantity += clickValue;
+          this.state.resources.timeShards.totalEarned += clickValue;
+          this.state.statistics.totalClicks++;
+          this.eventBus.emit(GameEvents.CLICK_PERFORMED, { value: clickValue });
+          return clickValue;
+        }
+        
+        addResource(resourceCode, amount) {
+          if (!this.state.resources[resourceCode]) {
+            this.state.resources[resourceCode] = { quantity: 0, totalEarned: 0, totalSpent: 0 };
+          }
+          this.state.resources[resourceCode].quantity += amount;
+          this.state.resources[resourceCode].totalEarned += amount;
+          this.eventBus.emit(GameEvents.RESOURCE_GAINED, { resource: resourceCode, amount });
+        }
+        
+        processTick(deltaTime) {
+          const generators = window.gameConfig?.getAllGenerators() || [];
+          
+          for (const gen of generators) {
+            if (!this.isGeneratorUnlocked(gen.codeName)) continue;
+            const genState = this.state.generators[gen.codeName];
+            const quantity = genState?.quantityPurchased || 0;
+            if (quantity <= 0) continue;
+            
+            let pps = gen.basePPS * quantity;
+            if (this.multipliers.category[gen.category]) pps *= this.multipliers.category[gen.category];
+            pps *= this.multipliers.global;
+            
+            for (const output of (gen.produces || [])) {
+              const amount = output.amount * pps * deltaTime * this.multipliers.resource;
+              this.addResource(output.resource, amount);
+            }
+          }
+          
+          const currentPPS = this.calculatePPS();
+          if (currentPPS > this.state.statistics.highestPPS) {
+            this.state.statistics.highestPPS = currentPPS;
+          }
+          
+          // Clean up expired boosts
+          const now = Date.now();
+          this.state.temporaryBoosts = this.state.temporaryBoosts.filter(b => b.endTime > now);
+          
+          this.lastPlayed = now;
+          this.state.lastPlayed = now;
+        }
+        
+        getState() {
+          return {
+            ...this.state,
+            pps: this.calculatePPS(),
+            multipliers: this.multipliers
+          };
+        }
+        
+        calculatePrestigePoints(tier = 1) {
+          const resources = window.gameConfig?.getAllResources() || [];
+          let totalValue = 0;
+          for (const res of resources) {
+            totalValue += this.state.resources[res.codeName]?.quantity || 0;
+          }
+          if (totalValue < 1000) return 0;
+          return Math.floor(Math.log10(totalValue));
+        }
+        
+        performPrestige(tier = 1) {
+          const points = this.calculatePrestigePoints(tier);
+          if (points <= 0) return { success: false, points: 0 };
+          
+          const result = { success: true, points, tier };
+          
+          const tierCurrencies = { 1: 'prestigeShards', 2: 'transcendPoints', 3: 'ascensionEssence' };
+          this.state.prestige[`tier${tier}`].points += points;
+          this.state.prestige[`tier${tier}`].timesPerformed++;
+          
+          // Reset content based on tier
+          if (tier >= 1) {
+            for (const key in this.state.generators) {
+              this.state.generators[key] = { quantityPurchased: 0, totalSpend: 0, totalEarned: 0 };
+            }
+            for (const key in this.state.resources) {
+              this.state.resources[key] = { quantity: 0, totalEarned: 0, totalSpent: 0 };
+            }
+          }
+          
+          if (tier >= 2) {
+            for (const key in this.state.upgrades) {
+              this.state.upgrades[key] = { purchased: false, purchaseCount: 0 };
+            }
+            for (const key in this.state.inventory) {
+              this.state.inventory[key] = 0;
+            }
+          }
+          
+          this.calculateAllMultipliers();
+          this.eventBus.emit(GameEvents.PRESTIGE_PERFORMED, result);
+          
+          return result;
+        }
+        
+        calculateDropRate() {
+          let totalGenerators = 0;
+          for (const key in this.state.generators) {
+            totalGenerators += this.state.generators[key].quantityPurchased;
+          }
+          let baseRate = Math.log(totalGenerators + 1) / 10;
+          if (this.multipliers.dropRate) baseRate *= this.multipliers.dropRate;
+          return Math.min(baseRate, 0.5);
+        }
+        
+        checkItemDrop() {
+          const dropRate = this.calculateDropRate();
+          if (Math.random() > dropRate) return null;
+          
+          const rarities = window.gameConfig?.getItemRarities() || [];
+          const totalWeight = rarities.reduce((sum, r) => sum + r.dropWeight, 0);
+          let roll = Math.random() * totalWeight;
+          
+          let selectedRarity = 'common';
+          for (const rarity of rarities) {
+            roll -= rarity.dropWeight;
+            if (roll <= 0) { selectedRarity = rarity.codeName; break; }
+          }
+          
+          const items = window.gameConfig?.getItemsByRarity(selectedRarity) || [];
+          if (items.length === 0) return null;
+          
+          const item = items[Math.floor(Math.random() * items.length)];
+          this.state.inventory[item.codeName]++;
+          this.state.statistics.itemsCollected++;
+          this.eventBus.emit(GameEvents.ITEM_DROPPED, { item: item.codeName });
+          
+          return item;
+        }
+        
+        useItem(codeName) {
+          if (this.state.inventory[codeName] <= 0) return false;
+          const item = window.gameConfig?.getItem(codeName);
+          if (!item || item.type !== 'consumable' || !item.effect) return false;
+          
+          const now = Date.now();
+          if (item.effect.type === 'temporaryMultiplier') {
+            this.state.temporaryBoosts.push({
+              type: 'globalMultiplier',
+              multiplier: item.effect.multiplier,
+              endTime: now + (item.effect.duration * 1000)
+            });
+          }
+          
+          this.state.inventory[codeName]--;
+          this.calculateAllMultipliers();
+          this.eventBus.emit(GameEvents.ITEM_USED, { item: codeName });
+          
+          return true;
+        }
+        
+        activateCharacter(codeName) {
+          if (!this.state.characters[codeName]?.unlocked) return false;
+          if (this.state.characters[codeName].activated) return true;
+          
+          let activeCount = 0;
+          for (const key in this.state.characters) {
+            if (this.state.characters[key].activated) activeCount++;
+          }
+          if (activeCount >= 3) return false;
+          
+          this.state.characters[codeName].activated = true;
+          this.calculateAllMultipliers();
+          this.eventBus.emit(GameEvents.CHARACTER_ACTIVATED, { codeName });
+          
+          return true;
+        }
+        
+        deactivateCharacter(codeName) {
+          if (!this.state.characters[codeName]?.activated) return false;
+          this.state.characters[codeName].activated = false;
+          this.calculateAllMultipliers();
+          this.eventBus.emit(GameEvents.CHARACTER_DEACTIVATED, { codeName });
+          return true;
+        }
+        
+        checkAchievements() {
+          const achievements = window.gameConfig?.getAllAchievements() || [];
+          
+          for (const achievement of achievements) {
+            if (this.state.achievements[achievement.codeName]?.unlocked) continue;
+            
+            let unlocked = false;
+            
+            switch (achievement.requirement?.type) {
+              case 'resource':
+                unlocked = (this.state.resources[achievement.requirement.resource]?.quantity || 0) >= achievement.requirement.amount;
+                break;
+              case 'generatorCount':
+                let total = 0;
+                for (const key in this.state.generators) {
+                  total += this.state.generators[key].quantityPurchased;
+                }
+                unlocked = total >= achievement.requirement.count;
+                break;
+              case 'pps':
+                unlocked = this.calculatePPS() >= achievement.requirement.amount;
+                break;
+              case 'totalClicks':
+                unlocked = this.state.statistics.totalClicks >= achievement.requirement.count;
+                break;
+            }
+            
+            if (unlocked) {
+              this.state.achievements[achievement.codeName] = { unlocked: true, timestamp: Date.now() };
+              this.state.statistics.achievementsUnlocked++;
+              
+              if (achievement.reward) {
+                if (achievement.reward.type === 'resource') {
+                  this.addResource(achievement.reward.resource, achievement.reward.amount);
+                } else if (achievement.reward.type === 'item') {
+                  this.state.inventory[achievement.reward.item] += achievement.reward.quantity || 1;
+                }
+              }
+              
+              this.eventBus.emit(GameEvents.ACHIEVEMENT_UNLOCKED, achievement);
+            }
+          }
+        }
+        
+        resetGame() {
+          this.state = this.getDefaultState();
+          this.multipliers = this.getDefaultMultipliers();
+          this.eventBus.emit(GameEvents.GAME_RESET);
+        }
+      }
+      
+      window.GameState = GameState;
+      
+      // GameLoop
+      class GameLoop {
+        constructor() {
+          this.eventBus = null;
+          this.state = null;
+          this.isRunning = false;
+          this.lastFrameTime = 0;
+          this.frameCount = 0;
+          this.tickRate = 10;
+          this.rafId = null;
+          this.tickAccumulator = 0;
+        }
+        
+        init(gameState) {
+          this.state = gameState;
+          this.eventBus = gameState.eventBus;
+          
+          const saveManager = new SaveManager();
+          saveManager.initAutoSave(() => this.state.getState());
+          
+          this.eventBus.on(GameEvents.GAME_RESET, () => this.handleReset());
+        }
+        
+        start() {
+          if (this.isRunning) return;
+          this.isRunning = true;
+          this.lastFrameTime = performance.now();
+          this.loop();
+        }
+        
+        stop() {
+          this.isRunning = false;
+          if (this.rafId) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
+          }
+        }
+        
+        loop() {
+          if (!this.isRunning) return;
+          this.rafId = requestAnimationFrame((timestamp) => this.loop());
+          
+          const deltaTime = (timestamp - this.lastFrameTime) / 1000;
+          this.lastFrameTime = timestamp;
+          
+          this.tickAccumulator += deltaTime;
+          const tickDuration = 1 / this.tickRate;
+          
+          while (this.tickAccumulator >= tickDuration) {
+            this.update(tickDuration);
+            this.tickAccumulator -= tickDuration;
+          }
+          
+          this.frameCount++;
+          
+          // Check for random events every ~10 seconds
+          if (this.frameCount % (this.tickRate * 10) === 0) {
+            this.checkRandomEvent();
+          }
+        }
+        
+        update(deltaTime) {
+          this.state.processTick(deltaTime);
+          this.state.checkAchievements();
+        }
+        
+        checkRandomEvent() {
+          const events = window.gameConfig?.getAllEvents() || [];
+          const availableEvents = events.filter(e => {
+            if (!e.unlockRequirement) return true;
+            const req = e.unlockRequirement;
+            return this.state.state.generators[req.generator]?.quantityPurchased >= req.quantity;
+          });
+          
+          for (const event of availableEvents) {
+            if (Math.random() < (event.triggerChance || 0.1)) {
+              this.triggerEvent(event);
+              break;
+            }
+          }
+        }
+        
+        triggerEvent(event) {
+          const now = Date.now();
+          
+          if (event.type === 'instantReward') {
+            for (const reward of (event.rewards || [])) {
+              if (reward.min != null && reward.max != null) {
+                const amount = Math.floor(Math.random() * (reward.max - reward.min + 1)) + reward.min;
+                this.state.addResource(reward.resource, amount);
+              }
+            }
+          } else if (event.type === 'temporaryBoost' && event.effects) {
+            for (const effect of event.effects) {
+              if (effect.type === 'globalMultiplier') {
+                this.state.state.temporaryBoosts.push({
+                  type: 'globalMultiplier',
+                  multiplier: effect.multiplier,
+                  endTime: now + ((event.duration || 60) * 1000)
+                });
+              }
+            }
+            this.state.calculateAllMultipliers();
+          }
+          
+          this.eventBus.emit(GameEvents.RANDOM_EVENT_START, {
+            codeName: event.codeName,
+            displayName: event.displayName,
+            icon: event.icon
+          });
+        }
+        
+        handleReset() {
+          this.stop();
+          this.start();
+        }
+        
+        forceSave() {
+          const saveManager = new SaveManager();
+          saveManager.save(this.state.getState(), 'manual');
+          this.eventBus.emit(GameEvents.GAME_SAVED, { timestamp: Date.now() });
+        }
+        
+        loadGame() {
+          const saveManager = new SaveManager();
+          const savedState = saveManager.load();
+          
+          if (savedState) {
+            this.state.init(savedState);
+            const offline = saveManager.calculateOfflineProgress(savedState);
+            if (offline.enabled) {
+              this.state.addResource('timeShards', offline.resourcesGained);
+            }
+            this.eventBus.emit(GameEvents.GAME_LOADED, { offlineProgress: offline });
+            return true;
+          }
+          return false;
+        }
+        
+        exportSave() {
+          const saveManager = new SaveManager();
+          return saveManager.export(this.state.getState());
+        }
+        
+        importSave(saveString) {
+          const saveManager = new SaveManager();
+          const loadedState = saveManager.import(saveString);
+          if (loadedState) {
+            this.state.init(loadedState);
+            this.eventBus.emit(GameEvents.GAME_LOADED, { imported: true });
+            return true;
+          }
+          return false;
+        }
+        
+        newGame() {
+          this.state.resetGame();
+          this.frameCount = 0;
+          this.start();
+        }
+      }
+      
+      window.GameLoop = GameLoop;
+      
+      // ========================================
+      // Initialize game
+      // ========================================
+      
+      console.log('Loading configurations...');
+      window.gameConfig = new ConfigManager();
+      await window.gameConfig.loadAll();
+      console.log('Configurations loaded!');
+      
+      console.log('Initializing game state...');
+      window.gameState = new GameState();
+      window.gameState.config = window.gameConfig;
+      
+      console.log('Initializing game loop...');
+      window.gameLoop = new GameLoop();
+      window.gameLoop.init(window.gameState);
+      
+      // Try to load saved game
+      const hasSave = window.gameLoop.loadGame();
+      
+      if (!hasSave) {
+        console.log('Starting new game...');
+        window.gameState.init();
+      } else {
+        console.log('Loaded saved game!');
+      }
+      
+      // Start game loop
+      window.gameLoop.start();
+      console.log('Game loop started!');
+      
+      // ========================================
+      // Mount Vue App
+      // ========================================
+      
+      const { createApp } = Vue;
+      
+      // Simplified App Component
+      const App = {
+        template: `
+          <div class="app-container">
+            <!-- Sidebar Navigation -->
+            <nav class="sidebar">
+              <div 
+                v-for="tab in tabs" 
+                :key="tab.id"
+                class="nav-item"
+                :class="{ active: activeTab === tab.id }"
+                @click="setActiveTab(tab.id)"
+                :title="tab.label"
+              >
+                <span class="icon">{{ tab.icon }}</span>
+                <span class="label">{{ tab.label }}</span>
+              </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="main-content">
+              <!-- Resource Bar -->
+              <div class="resource-bar">
+                <div 
+                  v-for="(data, codeName) in gameState.resources" 
+                  :key="codeName"
+                  class="resource-item"
+                  :style="{ borderLeftColor: getResourceColor(codeName) }"
+                >
+                  <span class="icon">{{ getResourceIcon(codeName) }}</span>
+                  <div class="info">
+                    <span class="value">{{ formatNumber(data.quantity) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content Area -->
+              <div class="content-area">
+                <!-- Generators Tab -->
+                <div v-if="activeTab === 'generators'" class="tab-content active">
+                  <div class="card">
+                    <div class="card-header">
+                      <h2 class="card-title">⚙️ Generators</h2>
+                      <span class="badge">Total PPS: {{ formatNumber(pps) }}/s</span>
+                    </div>
+                    
+                    <div v-for="category in categories" :key="category.codeName" class="category-section">
+                      <div class="category-header" @click="toggleCategory(category.codeName)">
+                        <span class="icon" :style="{ color: category.color }">{{ category.icon }}</span>
+                        <h3>{{ category.displayName }}</h3>
+                        <span class="count">{{ getCategoryOwned(category.codeName) }} owned</span>
+                        <span class="toggle">{{ expandedCategories[category.codeName] ? '▼' : '▶' }}</span>
+                      </div>
+                      
+                      <div v-show="expandedCategories[category.codeName]" class="category-content">
+                        <div 
+                          v-for="gen in getGeneratorsByCategory(category.codeName)" 
+                          :key="gen.codeName"
+                          class="generator-card"
+                          :class="{
+                            locked: !isGeneratorUnlocked(gen.codeName),
+                            unaffordable: isGeneratorUnlocked(gen.codeName) && !canAffordGenerator(gen.codeName)
+                          }"
+                          @click="handlePurchase(gen.codeName)"
+                        >
+                          <div class="icon">{{ gen.icon }}</div>
+                          <div class="generator-info">
+                            <h3>{{ gen.displayName }}</h3>
+                            <p>{{ gen.description }}</p>
+                            <span class="quantity" v-if="gameState.generators[gen.codeName]?.quantityPurchased > 0">
+                              Owned: {{ gameState.generators[gen.codeName].quantityPurchased }}
+                            </span>
+                          </div>
+                          <div class="generator-stats">
+                            <span class="cost">{{ formatCost(getGeneratorCost(gen.codeName)) }}</span>
+                            <span class="pps">+{{ formatNumber(calculatePPS(gen)) }}/s</span>
+                            <span class="purchased" v-if="gameState.generators[gen.codeName]?.quantityPurchased > 0">
+                              {{ gameState.generators[gen.codeName].quantityPurchased }}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div v-if="getGeneratorsByCategory(category.codeName).length === 0" class="empty-state">
+                          <span class="icon">🔒</span>
+                          <p>No generators unlocked yet</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Upgrades Tab -->
+                <div v-if="activeTab === 'upgrades'" class="tab-content active">
+                  <div class="card">
+                    <div class="card-header">
+                      <h2 class="card-title">📈 Upgrades</h2>
+                    </div>
+                    
+                    <div v-for="category in upgradeCategories" :key="category.codeName" class="upgrade-category">
+                      <h3 class="category-title">
+                        <span class="icon">{{ category.icon }}</span>
+                        {{ category.displayName }}
+                      </h3>
+                      
+                      <div 
+                        v-for="upgrade in getUpgradesByCategory(category.codeName)" 
+                        :key="upgrade.codeName"
+                        class="upgrade-item"
+                        :class="{
+                          purchased: isUpgradePurchased(upgrade.codeName),
+                          locked: !isUpgradeUnlocked(upgrade.codeName)
+                        }"
+                        @click="handleUpgradePurchase(upgrade.codeName)"
+                      >
+                        <div class="icon">{{ upgrade.icon }}</div>
+                        <div class="info">
+                          <h4>{{ upgrade.displayName }}</h4>
+                          <p>{{ upgrade.description }}</p>
+                        </div>
+                        <div class="cost" v-if="!isUpgradePurchased(upgrade.codeName)">
+                          {{ formatNumber(getUpgradeCost(upgrade.codeName)) }} {{ getResourceName(upgrade.costResource) }}
+                        </div>
+                        <div class="purchased-badge" v-else>✓</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Characters Tab -->
+                <div v-if="activeTab === 'characters'" class="tab-content active">
+                  <div class="card">
+                    <div class="card-header">
+                      <h2 class="card-title">👤 Characters</h2>
+                      <span class="badge">Active: {{ activeCount }} / 3</span>
+                    </div>
+                    
+                    <div 
+                      v-for="char in characters" 
+                      :key="char.codeName"
+                      class="character-card"
+                      :class="{
+                        locked: !gameState.characters[char.codeName]?.unlocked,
+                        activated: gameState.characters[char.codeName]?.activated
+                      }"
+                    >
+                      <div class="avatar">{{ char.icon }}</div>
+                      <div class="info">
+                        <h4>{{ char.displayName }}</h4>
+                        <span class="class">{{ char.class }}</span>
+                      </div>
+                      <div class="stats">
+                        <div class="stat">
+                          <span class="value">{{ formatMultiplier(char.baseStats.resourceGain) }}</span>
+                          <span class="label">Resources</span>
+                        </div>
+                      </div>
+                      <div class="actions">
+                        <button 
+                          v-if="gameState.characters[char.codeName]?.unlocked && !gameState.characters[char.codeName]?.activated"
+                          class="btn btn-primary btn-sm"
+                          :disabled="activeCount >= 3"
+                          @click="activateCharacter(char.codeName)"
+                        >Activate</button>
+                        <button 
+                          v-if="gameState.characters[char.codeName]?.activated"
+                          class="btn btn-secondary btn-sm"
+                          @click="deactivateCharacter(char.codeName)"
+                        >Deactivate</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Inventory Tab -->
+                <div v-if="activeTab === 'inventory'" class="tab-content active">
+                  <div class="card">
+                    <div class="card-header">
+                      <h2 class="card-title">🎒 Inventory</h2>
+                    </div>
+                    
+                    <div class="inventory-grid">
+                      <div 
+                        v-for="item in getFilteredItems()" 
+                        :key="item.codeName"
+                        class="inventory-item"
+                        :class="'rarity-' + item.rarity"
+                        :title="item.displayName + ': ' + item.description"
+                        @click="handleItemUse(item.codeName)"
+                      >
+                        <span class="icon">{{ item.icon }}</span>
+                        <span class="count" v-if="gameState.inventory[item.codeName] > 1">
+                          {{ gameState.inventory[item.codeName] }}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div v-if="getFilteredItems().length === 0" class="empty-state">
+                      <span class="icon">📦</span>
+                      <p>No items yet - they drop from generators!</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Achievements Tab -->
+                <div v-if="activeTab === 'achievements'" class="tab-content active">
+                  <div class="card">
+                    <div class="card-header">
+                      <h2 class="card-title">🏆 Achievements</h2>
+                      <span class="badge">{{ unlockedAchievements }} / {{ achievements.length }}</span>
+                    </div>
+                    
+                    <div 
+                      v-for="achievement in achievements" 
+                      :key="achievement.codeName"
+                      class="achievement"
+                      :class="{ unlocked: gameState.achievements[achievement.codeName]?.unlocked }"
+                    >
+                      <div class="icon">{{ achievement.icon }}</div>
+                      <div class="info">
+                        <h4>{{ achievement.displayName }}</h4>
+                        <p>{{ achievement.description }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stats Tab -->
+                <div v-if="activeTab === 'stats'" class="tab-content active">
+                  <div class="card">
+                    <div class="card-header">
+                      <h2 class="card-title">📊 Statistics</h2>
+                    </div>
+                    
+                    <div class="stats-grid">
+                      <div class="stat-item">
+                        <span class="value">{{ formatNumber(pps) }}</span>
+                        <span class="label">PPS</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="value">{{ formatNumber(gameState.statistics.totalClicks) }}</span>
+                        <span class="label">Total Clicks</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="value">{{ formatNumber(gameState.statistics.generatorsOwned) }}</span>
+                        <span class="label">Generators</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="value">{{ formatNumber(gameState.statistics.highestPPS) }}</span>
+                        <span class="label">Highest PPS</span>
+                      </div>
+                    </div>
+                    
+                    <h3 class="mt-lg">PPS Breakdown</h3>
+                    <div class="pps-breakdown">
+                      <div v-for="(data, codeName) in ppsBreakdown" :key="codeName" class="pps-item">
+                        <div class="pps-info">
+                          <span class="name">{{ data.displayName }}</span>
+                          <span class="count">x{{ data.quantity }}</span>
+                        </div>
+                        <div class="progress-bar">
+                          <div class="fill" :style="{ width: data.percentage + '%' }"></div>
+                        </div>
+                        <span class="pps-value">{{ formatNumber(data.pps) }}/s ({{ data.percentage.toFixed(1) }}%)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Prestige Tab -->
+                <div v-if="activeTab === 'prestige'" class="tab-content active">
+                  <div class="prestige-panel">
+                    <div class="prestige-tier">
+                      <div class="tier-header">
+                        <span class="icon">🔄</span>
+                        <h3>Reset</h3>
+                      </div>
+                      <div class="current-points">
+                        <span class="label">Current Points:</span>
+                        <span class="value">{{ gameState.prestige?.tier1?.points || 0 }}</span>
+                      </div>
+                      <div class="potential-gain">
+                        <span class="label">Potential Gain:</span>
+                        <span class="value text-warning">+{{ calculatePrestigePoints() }}</span>
+                      </div>
+                      <button 
+                        class="btn btn-warning btn-lg"
+                        :disabled="calculatePrestigePoints() <= 0"
+                        @click="performPrestige"
+                      >
+                        Prestige
+                      </button>
+                      <p class="text-muted mt-sm">Reset generators and resources for permanent bonuses</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Click Button -->
+              <div class="click-area">
+                <button class="click-button" @click="handleClick">
+                  ⏱️
+                </button>
+              </div>
+
+              <!-- Notifications -->
+              <div 
+                v-for="(notification, index) in notifications" 
+                :key="notification.id"
+                class="notification"
+                :class="notification.type"
+                :style="{ top: (80 + index * 70) + 'px' }"
+              >
+                <span class="icon">{{ notification.icon }}</span>
+                <span class="message">{{ notification.message }}</span>
+              </div>
+
+              <!-- Save Controls -->
+              <div class="save-controls">
+                <button class="btn btn-sm btn-secondary" @click="saveGame">💾 Save</button>
+                <button class="btn btn-sm btn-secondary" @click="exportSave">📤 Export</button>
+                <button class="btn btn-sm btn-secondary" @click="showImportModal = true">📥 Import</button>
+              </div>
+            </main>
+
+            <!-- Import Modal -->
+            <div class="modal-overlay" :class="{ active: showImportModal }" @click.self="showImportModal = false">
+              <div class="modal">
+                <div class="modal-header">
+                  <h2>Import Save</h2>
+                  <button class="modal-close" @click="showImportModal = false">×</button>
+                </div>
+                <div class="modal-content">
+                  <textarea 
+                    v-model="importString" 
+                    placeholder="Paste your save data here..."
+                    class="import-textarea"
+                  ></textarea>
+                  <button class="btn btn-primary mt-md" @click="importSave" :disabled="!importString">
+                    Import
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `,
+        data() {
+          return {
+            activeTab: 'generators',
+            showImportModal: false,
+            importString: '',
+            notifications: [],
+            tabs: [
+              { id: 'generators', label: 'Generators', icon: '⚙️' },
+              { id: 'upgrades', label: 'Upgrades', icon: '📈' },
+              { id: 'characters', label: 'Characters', icon: '👤' },
+              { id: 'inventory', label: 'Inventory', icon: '🎒' },
+              { id: 'achievements', label: 'Achievements', icon: '🏆' },
+              { id: 'stats', label: 'Stats', icon: '📊' },
+              { id: 'prestige', label: 'Prestige', icon: '🔄' }
+            ],
+            categories: [],
+            upgradeCategories: [],
+            generators: [],
+            upgrades: [],
+            characters: [],
+            items: [],
+            achievements: [],
+            expandedCategories: {}
+          };
+        },
+        computed: {
+          gameState() {
+            return window.gameState?.state || {};
+          },
+          pps() {
+            return window.gameState?.calculatePPS() || 0;
+          },
+          ppsBreakdown() {
+            return window.gameState?.getPPSBreakdown() || {};
+          },
+          activeCount() {
+            return Object.values(this.gameState.characters || {}).filter(s => s?.activated).length;
+          },
+          unlockedAchievements() {
+            return Object.values(this.gameState.achievements || {}).filter(s => s?.unlocked).length;
+          }
+        },
+        mounted() {
+          this.loadConfig();
+          this.setupEventListeners();
+          
+          // Update UI periodically
+          setInterval(() => this.$forceUpdate(), 100);
+        },
+        methods: {
+          loadConfig() {
+            if (window.gameConfig) {
+              this.categories = window.gameConfig.getGeneratorCategories();
+              this.upgradeCategories = window.gameConfig.getUpgradeCategories();
+              this.generators = window.gameConfig.getAllGenerators();
+              this.upgrades = window.gameConfig.getAllUpgrades();
+              this.characters = window.gameConfig.getAllCharacters();
+              this.items = window.gameConfig.getAllItems();
+              this.achievements = window.gameConfig.getAllAchievements();
+              
+              // Expand first category
+              if (this.categories.length > 0) {
+                this.$set(this.expandedCategories, this.categories[0].codeName, true);
+              }
+            }
+          },
+          setupEventListeners() {
+            if (window.gameLoop) {
+              window.gameLoop.eventBus.on('itemDropped', (data) => {
+                const item = window.gameConfig?.getItem(data.item);
+                if (item) {
+                  this.showNotification(`Found ${item.displayName}!`, 'success', item.icon);
+                }
+              });
+              window.gameLoop.eventBus.on('achievementUnlocked', (data) => {
+                this.showNotification(`Achievement: ${data.displayName}`, 'success', data.icon);
+              });
+            }
+          },
+          setActiveTab(tabId) {
+            this.activeTab = tabId;
+          },
+          toggleCategory(codeName) {
+            this.$set(this.expandedCategories, codeName, !this.expandedCategories[codeName]);
+          },
+          getGeneratorsByCategory(category) {
+            return this.generators.filter(g => g.category === category);
+          },
+          getCategoryOwned(category) {
+            const categoryGens = this.getGeneratorsByCategory(category);
+            return categoryGens.reduce((sum, gen) => {
+              return sum + (this.gameState.generators?.[gen.codeName]?.quantityPurchased || 0);
+            }, 0);
+          },
+          isGeneratorUnlocked(codeName) {
+            return window.gameState?.isGeneratorUnlocked(codeName) || false;
+          },
+          isUpgradeUnlocked(codeName) {
+            return window.gameState?.isUpgradeUnlocked(codeName) || false;
+          },
+          isUpgradePurchased(codeName) {
+            const state = this.gameState.upgrades?.[codeName];
+            if (!state) return false;
+            const upgrade = this.upgrades.find(u => u.codeName === codeName);
+            if (!upgrade) return false;
+            return upgrade.maxPurchases === 1 ? state.purchased : state.purchaseCount >= upgrade.maxPurchases;
+          },
+          getGeneratorCost(codeName) {
+            return window.gameState?.getGeneratorCost(codeName) || {};
+          },
+          canAffordGenerator(codeName) {
+            return window.gameState?.canAffordGenerator(codeName) || false;
+          },
+          calculatePPS(gen) {
+            let pps = gen.basePPS;
+            if (window.gameState?.multipliers?.category?.[gen.category]) {
+              pps *= window.gameState.multipliers.category[gen.category];
+            }
+            pps *= window.gameState?.multipliers?.global || 1;
+            return pps;
+          },
+          getUpgradeCost(codeName) {
+            return window.gameState?.getUpgradeCost(codeName) || Infinity;
+          },
+          getUpgradesByCategory(category) {
+            return this.upgrades.filter(u => u.category === category);
+          },
+          getFilteredItems() {
+            return this.items.filter(item => (this.gameState.inventory?.[item.codeName] || 0) > 0);
+          },
+          getResourceIcon(codeName) {
+            const config = window.gameConfig?.getResource(codeName);
+            return config?.icon || '💎';
+          },
+          getResourceColor(codeName) {
+            const config = window.gameConfig?.getResource(codeName);
+            return config?.color || '#6366f1';
+          },
+          getResourceName(codeName) {
+            const config = window.gameConfig?.getResource(codeName);
+            return config?.displayName || codeName;
+          },
+          formatCost(costs) {
+            return Object.entries(costs)
+              .map(([res, amount]) => `${this.formatNumber(Math.ceil(amount))} ${this.getResourceName(res)}`)
+              .join(', ') || 'Free';
+          },
+          formatNumber(num) {
+            if (num < 1000) return Math.floor(num).toLocaleString();
+            if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
+            if (num < 1000000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num < 1000000000000) return (num / 1000000000).toFixed(2) + 'B';
+            return (num / 1000000000000).toFixed(2) + 'T';
+          },
+          formatMultiplier(value) {
+            if (value === 1) return '1x';
+            return ((value - 1) * 100).toFixed(0) + '%';
+          },
+          handlePurchase(codeName) {
+            if (this.isGeneratorUnlocked(codeName) && this.canAffordGenerator(codeName)) {
+              if (window.gameState?.purchaseGenerator(codeName)) {
+                this.showNotification('Generator purchased!', 'success', '✓');
+              }
+            }
+          },
+          handleUpgradePurchase(codeName) {
+            if (!this.isUpgradePurchased(codeName) && this.isUpgradeUnlocked(codeName)) {
+              if (window.gameState?.purchaseUpgrade(codeName)) {
+                this.showNotification('Upgrade purchased!', 'success', '✓');
+              }
+            }
+          },
+          activateCharacter(codeName) {
+            if (window.gameState?.activateCharacter(codeName)) {
+              this.showNotification('Character activated!', 'success', '✓');
+            }
+          },
+          deactivateCharacter(codeName) {
+            if (window.gameState?.deactivateCharacter(codeName)) {
+              this.showNotification('Character deactivated', 'info', '✓');
+            }
+          },
+          handleItemUse(codeName) {
+            if (window.gameState?.useItem(codeName)) {
+              const item = window.gameConfig?.getItem(codeName);
+              this.showNotification(`Used ${item?.displayName || codeName}!`, 'success', '✓');
+            }
+          },
+          handleClick() {
+            const value = window.gameState?.handleClick() || 0;
+            this.showFloatingNumber(event, value);
+          },
+          showFloatingNumber(event, value) {
+            const num = document.createElement('div');
+            num.className = 'floating-number';
+            num.textContent = '+' + this.formatNumber(value);
+            num.style.left = (event?.clientX || window.innerWidth / 2) + 'px';
+            num.style.top = (event?.clientY || window.innerHeight / 2) + 'px';
+            document.body.appendChild(num);
+            setTimeout(() => num.remove(), 1000);
+          },
+          showNotification(message, type = 'info', icon = 'ℹ️') {
+            const id = Date.now();
+            this.notifications.push({ id, message, type, icon });
+            setTimeout(() => {
+              this.notifications = this.notifications.filter(n => n.id !== id);
+            }, 3000);
+          },
+          calculatePrestigePoints() {
+            return window.gameState?.calculatePrestigePoints(1) || 0;
+          },
+          performPrestige() {
+            if (confirm('Are you sure you want to prestige? This will reset generators and resources.')) {
+              const result = window.gameState?.performPrestige(1);
+              if (result?.success) {
+                this.showNotification(`Prestige successful! Gained ${result.points} points.`, 'success', '🎉');
+              }
+            }
+          },
+          saveGame() {
+            if (window.gameLoop) {
+              window.gameLoop.forceSave();
+              this.showNotification('Game saved!', 'success', '💾');
+            }
+          },
+          exportSave() {
+            if (window.gameLoop) {
+              const saveString = window.gameLoop.exportSave();
+              navigator.clipboard.writeText(saveString).then(() => {
+                this.showNotification('Save copied to clipboard!', 'success', '📋');
+              }).catch(() => {
+                prompt('Copy this save data:', saveString);
+              });
+            }
+          },
+          importSave() {
+            if (window.gameLoop && this.importString) {
+              if (window.gameLoop.importSave(this.importString)) {
+                this.showNotification('Save imported successfully!', 'success', '✓');
+                this.showImportModal = false;
+                this.importString = '';
+              } else {
+                this.showNotification('Failed to import save', 'error', '✗');
+              }
+            }
+          }
+        }
+      };
+      
+      const app = createApp(App);
+      app.mount('#app');
+      
+      console.log('AFK AI - Game initialized successfully!');
+    });
+  </script>
+</body>
+</html>

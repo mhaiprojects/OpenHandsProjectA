@@ -1,0 +1,194 @@
+{
+  "eventTypes": [
+    {
+      "codeName": "instantReward",
+      "displayName": "Instant Reward",
+      "description": "Grants immediate resources",
+      "icon": "🎁"
+    },
+    {
+      "codeName": "temporaryBoost",
+      "displayName": "Temporary Boost",
+      "description": "Boosts production for a duration",
+      "icon": "⚡"
+    },
+    {
+      "codeName": "mysteryBox",
+      "displayName": "Mystery Box",
+      "description": "Random reward from box",
+      "icon": "📦"
+    },
+    {
+      "codeName": "miniBoss",
+      "displayName": "Mini Boss",
+      "description": "Defeat for rewards",
+      "icon": "👹"
+    },
+    {
+      "codeName": "tradeOffer",
+      "displayName": "Trade Offer",
+      "description": "Special trading opportunity",
+      "icon": "💱"
+    }
+  ],
+  "events": [
+    {
+      "codeName": "stellarStorm",
+      "displayName": "Stellar Storm",
+      "description": "A storm of stardust showers the universe!",
+      "type": "instantReward",
+      "icon": "🌪️",
+      "rarity": "common",
+      "duration": 0,
+      "cooldown": 120,
+      "rewards": [
+        { "resource": "stardust", "min": 50, "max": 200 },
+        { "resource": "cosmicEnergy", "min": 20, "max": 100 }
+      ],
+      "unlockRequirement": { "generator": "starForge", "quantity": 1 },
+      "triggerChance": 0.3
+    },
+    {
+      "codeName": "quantumSurge",
+      "displayName": "Quantum Surge",
+      "description": "Quantum energy floods the market!",
+      "type": "instantReward",
+      "icon": "⚛️",
+      "rarity": "uncommon",
+      "duration": 0,
+      "cooldown": 180,
+      "rewards": [
+        { "resource": "quantumFlux", "min": 100, "max": 500 }
+      ],
+      "unlockRequirement": { "generator": "quantumProcessor", "quantity": 1 },
+      "triggerChance": 0.2
+    },
+    {
+      "codeName": "doubleProduction",
+      "displayName": "Double Production",
+      "description": "All generators produce double for 60 seconds!",
+      "type": "temporaryBoost",
+      "icon": "2️⃣",
+      "rarity": "common",
+      "duration": 60,
+      "cooldown": 300,
+      "effects": [
+        { "type": "globalMultiplier", "multiplier": 2.0 }
+      ],
+      "unlockRequirement": { "generator": "cosmicSailor", "quantity": 3 },
+      "triggerChance": 0.15
+    },
+    {
+      "codeName": "voidRift",
+      "displayName": "Void Rift",
+      "description": "A rift to the void opens!",
+      "type": "mysteryBox",
+      "icon": "🌀",
+      "rarity": "rare",
+      "duration": 30,
+      "cooldown": 600,
+      "possibleRewards": [
+        { "type": "resource", "resource": "darkMatter", "min": 100, "max": 1000 },
+        { "type": "resource", "resource": "voidEssence", "min": 50, "max": 500 },
+        { "type": "item", "item": "voidEssence", "min": 1, "max": 5 }
+      ],
+      "unlockRequirement": { "generator": "voidHarvester", "quantity": 1 },
+      "triggerChance": 0.1
+    },
+    {
+      "name": "cosmicTrader",
+      "displayName": "Cosmic Trader",
+      "description": "A traveling merchant offers a deal",
+      "type": "tradeOffer",
+      "icon": "🧙",
+      "rarity": "uncommon",
+      "duration": 45,
+      "cooldown": 450,
+      "tradeOffer": {
+        "give": { "resource": "stardust", "amount": 1000 },
+        "receive": { "resource": "cosmicEnergy", "amount": 500 }
+      },
+      "unlockRequirement": { "generator": "starForge", "quantity": 5 },
+      "triggerChance": 0.12
+    },
+    {
+      "codeName": "nebulaBlessing",
+      "displayName": "Nebula Blessing",
+      "description": "The nebula grants its blessing!",
+      "type": "temporaryBoost",
+      "icon": "🌫️",
+      "rarity": "uncommon",
+      "duration": 120,
+      "cooldown": 600,
+      "effects": [
+        { "type": "resourceMultiplier", "multiplier": 1.5 }
+      ],
+      "unlockRequirement": { "generator": "nebulaEngine", "quantity": 1 },
+      "triggerChance": 0.1
+    },
+    {
+      "codeName": "voidWraith",
+      "displayName": "Void Wraith",
+      "description": "A void wraith attacks! Defeat it for rewards.",
+      "type": "miniBoss",
+      "icon": "👻",
+      "rarity": "rare",
+      "duration": 0,
+      "cooldown": 900,
+      "rewards": [
+        { "resource": "voidEssence", "min": 200, "max": 500 },
+        { "type": "item", "item": "darkMatterCube", "min": 1, "max": 1 }
+      ],
+      "health": 1000,
+      "unlockRequirement": { "generator": "voidHarvester", "quantity": 5 },
+      "triggerChance": 0.05
+    },
+    {
+      "codeName": "clickFrenzy",
+      "displayName": "Click Frenzy",
+      "description": "Click power increased 10x for 30 seconds!",
+      "type": "temporaryBoost",
+      "icon": "👆",
+      "rarity": "common",
+      "duration": 30,
+      "cooldown": 180,
+      "effects": [
+        { "type": "clickMultiplier", "multiplier": 10 }
+      ],
+      "unlockRequirement": null,
+      "triggerChance": 0.25
+    },
+    {
+      "codeName": "wormholeAnomaly",
+      "displayName": "Wormhole Anomaly",
+      "description": "A wormhole anomaly grants access to rare resources!",
+      "type": "instantReward",
+      "icon": "🕳️",
+      "rarity": "epic",
+      "duration": 0,
+      "cooldown": 1200,
+      "rewards": [
+        { "resource": "wormholeEnergy", "min": 500, "max": 2000 },
+        { "resource": "chrononParticles", "min": 100, "max": 500 }
+      ],
+      "unlockRequirement": { "generator": "wormholeExtractor", "quantity": 1 },
+      "triggerChance": 0.05
+    },
+    {
+      "codeName": "antimatterStorm",
+      "displayName": "Antimatter Storm",
+      "description": "Antimatter storm grants incredible rewards!",
+      "type": "instantReward",
+      "icon": "⚛️",
+      "rarity": "legendary",
+      "duration": 0,
+      "cooldown": 1800,
+      "rewards": [
+        { "resource": "antimatter", "min": 50, "max": 200 },
+        { "resource": "singularityDust", "min": 10, "max": 50 }
+      ],
+      "unlockRequirement": { "generator": "antimatterReactor", "quantity": 1 },
+      "triggerChance": 0.02
+    }
+  ]
+}

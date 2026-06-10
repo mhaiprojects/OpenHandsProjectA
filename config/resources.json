@@ -1,0 +1,112 @@
+{
+  "resources": [
+    {
+      "codeName": "timeShards",
+      "displayName": "Time Shards",
+      "description": "The primary currency of time and space",
+      "baseValue": 1,
+      "incrementRate": 0.1,
+      "icon": "⏱️",
+      "color": "#6366f1"
+    },
+    {
+      "codeName": "cosmicEnergy",
+      "displayName": "Cosmic Energy",
+      "description": "Pure energy harvested from stars",
+      "baseValue": 0,
+      "incrementRate": 0.05,
+      "icon": "✨",
+      "color": "#8b5cf6"
+    },
+    {
+      "codeName": "stardust",
+      "displayName": "Stardust",
+      "description": "Refined particles from nebulae",
+      "baseValue": 0,
+      "incrementRate": 0.02,
+      "icon": "⭐",
+      "color": "#f59e0b"
+    },
+    {
+      "codeName": "darkMatter",
+      "displayName": "Dark Matter",
+      "description": "Mysterious substance from the void",
+      "baseValue": 0,
+      "incrementRate": 0.01,
+      "icon": "🌑",
+      "color": "#1f2937"
+    },
+    {
+      "codeName": "quantumFlux",
+      "displayName": "Quantum Flux",
+      "description": "Energy from quantum fluctuations",
+      "baseValue": 0,
+      "incrementRate": 0.008,
+      "icon": "🔮",
+      "color": "#06b6d4"
+    },
+    {
+      "codeName": "voidEssence",
+      "displayName": "Void Essence",
+      "description": "Essence of the cosmic void",
+      "baseValue": 0,
+      "incrementRate": 0.005,
+      "icon": "🌀",
+      "color": "#7c3aed"
+    },
+    {
+      "codeName": "nebulaGas",
+      "displayName": "Nebula Gas",
+      "description": "Gas harvested from nebulae",
+      "baseValue": 0,
+      "incrementRate": 0.003,
+      "icon": "🌫️",
+      "color": "#ec4899"
+    },
+    {
+      "codeName": "plasmaCore",
+      "displayName": "Plasma Core",
+      "description": "Concentrated stellar plasma",
+      "baseValue": 0,
+      "incrementRate": 0.002,
+      "icon": "🔥",
+      "color": "#ef4444"
+    },
+    {
+      "codeName": "wormholeEnergy",
+      "displayName": "Wormhole Energy",
+      "description": "Energy extracted from wormholes",
+      "baseValue": 0,
+      "incrementRate": 0.001,
+      "icon": "🕳️",
+      "color": "#10b981"
+    },
+    {
+      "codeName": "chrononParticles",
+      "displayName": "Chronon Particles",
+      "description": "Particles that control time flow",
+      "baseValue": 0,
+      "incrementRate": 0.0008,
+      "icon": "⏰",
+      "color": "#3b82f6"
+    },
+    {
+      "codeName": "antimatter",
+      "displayName": "Antimatter",
+      "description": "Rare anti-matter substance",
+      "baseValue": 0,
+      "incrementRate": 0.0005,
+      "icon": "⚛️",
+      "color": "#f97316"
+    },
+    {
+      "codeName": "singularityDust",
+      "displayName": "Singularity Dust",
+      "description": "Dust from collapsed singularities",
+      "baseValue": 0,
+      "incrementRate": 0.0003,
+      "icon": "🕳️",
+      "color": "#000000"
+    }
+  ]
+}
