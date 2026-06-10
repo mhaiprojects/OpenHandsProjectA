@@ -921,9 +921,9 @@
           }
         }
         
-        loop() {
+        loop(timestamp) {
           if (!this.isRunning) return;
-          this.rafId = requestAnimationFrame((timestamp) => this.loop());
+          this.rafId = requestAnimationFrame((ts) => this.loop(ts));
           
           const deltaTime = (timestamp - this.lastFrameTime) / 1000;
           this.lastFrameTime = timestamp;
