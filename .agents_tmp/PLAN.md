@@ -85,3 +85,128 @@ Create a simple UI section to buy generators once affordable.
 
 ## Summary
 The game needs: (1) game loop start, (2) click button, (3) resource display, (4) proper config loading order.
+
+---
+
+# Comprehensive Mobile-Friendly & Playable Game Plan
+
+## Issues Found
+
+### A. Core Functionality (Game Doesn't Run)
+| Issue | Fix |
+|-------|-----|
+| Game loop never started | Call `gameLoop.init()` and `gameLoop.start()` after config loads |
+| Config loading race condition | `await configManager.loadAll()` before game state init |
+| Module import mismatch | External modules use ES imports but aren't loaded |
+| Empty Vue app | Add UI components/templates |
+| No click interaction | Add main click button that calls `handleClick()` |
+
+### B. Economy Imbalances
+| Issue | Current State | Recommended Fix |
+|-------|---------------|----------------|
+| **Click value too low** | ~1 shard per click | Start at 5-10, add scaling upgrades |
+| **Generator costs too steep** | 10 shards for Time Warden | Reduce to 5, add first-gen tutorial bonus |
+| **PPS recoup time** | 10 seconds per generator | Balance: 5-8 seconds ideal |
+| **Secondary resources gated** | Require 5-10 generators | Unlock first of each at 1 generator owned |
+| **Upgrade costs unreachable** | Thousands of late-game currency | Scale costs logarithmically to current progress |
+| **Missing items** | Achievements reference non-existent items | Add items.json definitions |
+
+### C. Mobile UI Issues
+| Issue | Fix |
+|-------|-----|
+| Small touch targets | Increase button sizes to 48px minimum |
+| Sidebar covers content | Bottom nav with safe area padding |
+| Scrollable content | Optimize for thumb reach zones |
+| Font sizes too small | Base 16px, scale up for readability |
+| No touch feedback | Add haptic-like visual feedback on taps |
+
+## Implementation Plan
+
+### Phase 1: Fix Core Game Engine
+1. **Fix initialization chain**:
+   - Load all configs with `await`
+   - Initialize game state
+   - Start game loop
+   - Mount Vue app
+
+2. **Add main UI components**:
+   - Click button (large, center-bottom for thumb reach)
+   - Resource display bar
+   - Generator shop
+   - Basic navigation tabs
+
+### Phase 2: Balance Economy
+3. **Tune click value**:
+   - Base click: 10 time shards
+   - Add "Click Power" upgrade that multiplies
+
+4. **Balance generator progression**:
+   - Reduce Time Warden cost to 5
+   - Add early-game catchup bonus (first 10 generators cost 50% less)
+   - Reduce cost multipliers slightly (1.10 instead of 1.15)
+
+5. **Unlock secondary resources earlier**:
+   - When you own ANY generator, unlock that resource type
+   - Cosmic Energy: 1 Time Warden
+   - Stardust: 1 Cosmic Sailor
+   - etc.
+
+6. **Add missing items** to `config/items.json`:
+   - stellarFragment, plasmaBlade, voidShield, cosmicRing, boostPotion, wormholeKey, quantumCrystal, timekeepersAmulet
+
+### Phase 3: Mobile Optimization
+7. **CSS improvements**:
+   ```css
+   /* Touch-friendly targets */
+   .btn, .nav-item { min-height: 48px; min-width: 48px; }
+   
+   /* Bottom navigation safe area */
+   .sidebar { padding-bottom: env(safe-area-inset-bottom); }
+   
+   /* Larger fonts */
+   html { font-size: 17px; }
+   
+   /* Better thumb reach */
+   .main-action-area { padding-bottom: 120px; }
+   ```
+
+8. **UI layout for mobile**:
+   - Click button: bottom-center, large (150px)
+   - Resources: top sticky bar
+   - Shop: swipeable cards or accordion
+   - Navigation: bottom tab bar
+
+### Phase 4: Progression Feel Good
+9. **Achievement rewards**:
+   - First shard: +10 shards (immediate gratification)
+   - 100 shards: +50 shards
+   - First generator: +5 of that generator type free
+   - 10 generators: Unlock all upgrade categories
+
+10. **Visual feedback**:
+    - Floating numbers on click
+    - Screen shake on big purchases
+    - Particle effects on achievements
+    - Progress bars toward next unlock
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `index.html` | Fix initialization, add UI template |
+| `js/game/GameLoop.js` | Ensure init/start called |
+| `js/game/GameState.js` | Fix config loading dependency |
+| `config/resources.json` | Lower base costs |
+| `config/generators.json` | Reduce costs, adjust PPS |
+| `config/items.json` | Add missing item definitions |
+| `config/achievements.json` | Adjust rewards |
+| `css/styles.css` | Mobile optimizations, larger touch targets |
+
+## Success Criteria
+- [ ] Game loads and runs without errors
+- [ ] Click generates resources visibly
+- [ ] Can buy first generator within 30 seconds of play
+- [ ] UI works on 375px width (iPhone SE)
+- [ ] Touch targets ≥ 48px
+- [ ] Resources display update in real-time
+- [ ] Progression feels rewarding (never stuck, always progressing)

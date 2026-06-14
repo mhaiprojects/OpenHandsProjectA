@@ -1708,17 +1708,46 @@
       };
       
       const app = createApp(App);
-      app.mount('#app');
       
-      console.log('AFK AI - Game initialized successfully!');
+      // Add error boundary
+      const originalMount = app.mount.bind(app);
+      app.mount = function(container) {
+        try {
+          console.log('Attempting to mount Vue app to:', container);
+          const result = originalMount(container);
+          console.log('Vue app mounted successfully!');
+          
+          // Check if app is visible
+          const el = document.querySelector(container);
+          if (el && el.children.length > 0) {
+            console.log('Vue rendered', el.children.length, 'child elements');
+          } else {
+            console.warn('Vue mounted but no children rendered!');
+          }
+          
+          return result;
+        } catch (e) {
+          console.error('Vue mount error:', e);
+          document.getElementById('fallback-ui').style.display = 'block';
+          document.getElementById('debug-info').textContent = 'Vue mount failed: ' + e.message;
+          return null;
+        }
+      };
+      
+      app.mount('#app');
+      console.log('AFK AI - Game initialization complete!');
       
       // Debug: show game state info
       setTimeout(() => {
         if (window.gameConfig && window.gameState) {
-          console.log('Game Config loaded:', window.gameConfig.getAllResources().length, 'resources');
-          console.log('Game State initialized with', Object.keys(window.gameState.state.resources).length, 'resource types');
+          console.log('=== GAME STATE DEBUG ===');
+          console.log('Resources loaded:', window.gameConfig.getAllResources().length);
+          console.log('Generators loaded:', window.gameConfig.getAllGenerators().length);
+          console.log('Resource types in state:', Object.keys(window.gameState.state.resources).length);
           const ts = window.gameState.state.resources.timeShards;
-          console.log('Time Shards quantity:', ts?.quantity || 0);
+          console.log('Time Shards:', ts?.quantity || 0);
+          console.log('Game loop running:', window.gameLoop?.isRunning);
+          console.log('========================');
         } else {
           console.error('Game not properly initialized!');
           document.getElementById('fallback-ui').style.display = 'block';
