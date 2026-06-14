@@ -502,16 +502,20 @@
         
         isGeneratorUnlocked(codeName) {
           const gen = window.gameConfig?.getGenerator(codeName);
-          if (!gen || !gen.unlockRequirement) return true;
+          if (!gen) return false;
+          if (!gen.unlockRequirement) return true;
           const req = gen.unlockRequirement;
-          return this.state.generators[req.generator]?.quantityPurchased >= req.quantity;
+          const genState = this.state.generators[req.generator];
+          return genState && genState.quantityPurchased >= req.quantity;
         }
         
         isUpgradeUnlocked(codeName) {
           const upgrade = window.gameConfig?.getUpgrade(codeName);
-          if (!upgrade || !upgrade.unlockRequirement) return true;
+          if (!upgrade) return false;
+          if (!upgrade.unlockRequirement) return true;
           const req = upgrade.unlockRequirement;
-          return this.state.generators[req.generator]?.quantityPurchased >= req.quantity;
+          const genState = this.state.generators[req.generator];
+          return genState && genState.quantityPurchased >= req.quantity;
         }
         
         calculatePPS() {
@@ -1825,8 +1829,11 @@
             
             // Test 4: Unlock System - Progressive unlock test
             try {
-              // Reset for test
-              window.gameState.state.generators = {};
+              // Save original state
+              const originalGenerators = JSON.parse(JSON.stringify(window.gameState.state.generators));
+              const originalShards = window.gameState.state.resources.timeShards.quantity;
+              
+              // Give lots of resources
               window.gameState.state.resources.timeShards.quantity = 1000000;
               
               // Buy first generator
@@ -1842,6 +1849,10 @@
               window.gameState.purchaseGenerator('cosmicSailor');
               const starForgeUnlocked = window.gameState.isGeneratorUnlocked('starForge');
               addResult('Unlock System - Star Forge unlocks with 1 Cosmic Sailor', starForgeUnlocked);
+              
+              // Restore original state
+              window.gameState.state.generators = originalGenerators;
+              window.gameState.state.resources.timeShards.quantity = originalShards;
             } catch (e) {
               addResult('Unlock System - Progressive unlock test', false, e.message);
             }
@@ -1880,10 +1891,14 @@
             
             // Test 8: PPS Calculation
             try {
+              // Save original
+              const origGen = window.gameState.state.generators.timeWarden?.quantityPurchased || 0;
               window.gameState.state.generators.timeWarden.quantityPurchased = 10;
               const pps = window.gameState.calculatePPS();
               const ppsValid = pps > 0;
               addResult('PPS Calculation - Returns valid PPS', ppsValid, `PPS: ${pps.toFixed(2)}`);
+              // Restore
+              window.gameState.state.generators.timeWarden.quantityPurchased = origGen;
             } catch (e) {
               addResult('PPS Calculation - Returns valid PPS', false, e.message);
             }
@@ -1903,6 +1918,36 @@
               addResult('Save System - SaveManager initialized', hasSaveManager);
             } catch (e) {
               addResult('Save System - SaveManager initialized', false, e.message);
+            }
+            
+            // Test 11: Full Unlock Chain
+            try {
+              const generators = [
+                { codeName: 'timeWarden', requires: null },
+                { codeName: 'cosmicSailor', requires: 'timeWarden' },
+                { codeName: 'starForge', requires: 'cosmicSailor' },
+                { codeName: 'voidHarvester', requires: 'starForge' },
+                { codeName: 'quantumProcessor', requires: 'voidHarvester' },
+                { codeName: 'nebulaEngine', requires: 'quantumProcessor' },
+                { codeName: 'wormholeExtractor', requires: 'nebulaEngine' },
+                { codeName: 'chrononSynthesizer', requires: 'wormholeExtractor' },
+                { codeName: 'antimatterReactor', requires: 'chrononSynthesizer' },
+                { codeName: 'singularityManipulator', requires: 'antimatterReactor' }
+              ];
+              
+              let allUnlocked = true;
+              for (const gen of generators) {
+                const unlocked = window.gameState.isGeneratorUnlocked(gen.codeName);
+                if (!unlocked) {
+                  allUnlocked = false;
+                  addResult(`Unlock Chain - ${gen.codeName}`, false, `Requires: ${gen.requires || 'none'}`);
+                }
+              }
+              if (allUnlocked) {
+                addResult('Unlock Chain - All generators unlocked', true, 'All 10 generators available');
+              }
+            } catch (e) {
+              addResult('Unlock Chain - Full chain test', false, e.message);
             }
             
             this.testRunning = false;
