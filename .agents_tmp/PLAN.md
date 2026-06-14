@@ -14,199 +14,733 @@ Use git clone to fetch the repository, then checkout the specified branch.
 2. Navigate into the repository directory
 3. Checkout the `attempt3` branch
 
-# 5. TESTING AND VALIDATION
-- Verify the repository was cloned successfully
-- Confirm the current branch is `attempt3` using `git branch` or `git status`
+# My AFK AI – Idle Progressive Game Framework
+
+## Progress Tracker
+
+### UX/UI
+
+* Progress checklist panel (dev/debug only)
+* Visual completion indicators per system
+
+### Game Objects & Behaviour
+
+* Tracks implementation state of:
+
+  * Systems
+  * Config files
+  * UI modules
+
+### Dependencies
+
+* All systems reference tracker for validation
+
+### Scaling, Bonuses, Penalties & Effects
+
+* None (dev-only system)
 
 ---
 
-# Game Fixes Recommendations: AFK AI Idle Game
+## Core Design Principles
 
-## Issues Found
+### UX/UI
 
-After analyzing the codebase, here are the **critical issues preventing playability**:
+* No direct UI logic in systems
+* All UI is reactive to GameState
 
-### 1. **Game Loop Never Started**
-- `window.gameLoop` is created but `gameLoop.init()` and `gameLoop.start()` are never called
-- Game logic never runs, so no resources are generated
+### Game Objects & Behaviour
 
-### 2. **Config Loading Race Condition**
-- Configs are loaded asynchronously but game initialization doesn't wait for them
-- Game state references configs that may not be loaded yet
+* Strict separation:
 
-### 3. **Module Import Mismatch**
-- External JS files (GameLoop.js, GameState.js) use ES modules with `import` statements
-- But index.html doesn't import these files - it inlines core systems instead
-- Creates a disconnect between inlined code and external modules
+  * Config → static data
+  * Logic → calculations
+  * UI → rendering
 
-### 4. **Empty Vue App**
-- The Vue app mounts to `#app` but renders nothing
-- No click button, no resource display, no UI elements
+* Object Standardization:
 
-### 5. **Missing Core Interactions**
-- No way for players to click/generate resources
-- No generator purchasing system visible in UI
+  * codeName (unique ID)
+  * displayName (UI only)
 
-## Recommended Changes
+### Dependencies
 
-### Priority 1: Fix Game Initialization
-Add after config loading completes:
-```javascript
-// Start game loop
-window.gameLoop.init();
-window.gameLoop.start();
-```
+* All systems depend on shared GameState
 
-### Priority 2: Add Main Click Button
-Add a prominent click target in the UI that calls `gameState.handleClick()`:
-```html
-<button @click="handleClick" class="main-click-btn">
-  ⏱️ Click to earn Time Shards
-</button>
-```
+### Scaling, Bonuses, Penalties & Effects
 
-### Priority 3: Display Resources
-Show the primary resource (Time Shards) prominently:
-```html
-<div class="resource-display">
-  {{ formatNumber(gameState.state.resources.timeShards.quantity) }} Time Shards
-</div>
-```
-
-### Priority 4: Fix Config Loading Chain
-Ensure all configs are loaded before game state initialization:
-```javascript
-await configManager.loadAll();
-// THEN initialize game state
-```
-
-### Priority 5: Add Generator Shop UI
-Create a simple UI section to buy generators once affordable.
-
-## Summary
-The game needs: (1) game loop start, (2) click button, (3) resource display, (4) proper config loading order.
+* All values configurable via JSON
+* Infinite scaling supported via formulas
 
 ---
 
-# Comprehensive Mobile-Friendly & Playable Game Plan
+## Game Theme & Content
 
-## Issues Found
+### UX/UI
 
-### A. Core Functionality (Game Doesn't Run)
-| Issue | Fix |
-|-------|-----|
-| Game loop never started | Call `gameLoop.init()` and `gameLoop.start()` after config loads |
-| Config loading race condition | `await configManager.loadAll()` before game state init |
-| Module import mismatch | External modules use ES imports but aren't loaded |
-| Empty Vue app | Add UI components/templates |
-| No click interaction | Add main click button that calls `handleClick()` |
+* Visual theming tied to progression phase
+* Unlock-based visual transitions
 
-### B. Economy Imbalances
-| Issue | Current State | Recommended Fix |
-|-------|---------------|----------------|
-| **Click value too low** | ~1 shard per click | Start at 5-10, add scaling upgrades |
-| **Generator costs too steep** | 10 shards for Time Warden | Reduce to 5, add first-gen tutorial bonus |
-| **PPS recoup time** | 10 seconds per generator | Balance: 5-8 seconds ideal |
-| **Secondary resources gated** | Require 5-10 generators | Unlock first of each at 1 generator owned |
-| **Upgrade costs unreachable** | Thousands of late-game currency | Scale costs logarithmically to current progress |
-| **Missing items** | Achievements reference non-existent items | Add items.json definitions |
+### Game Objects & Behaviour
 
-### C. Mobile UI Issues
-| Issue | Fix |
-|-------|-----|
-| Small touch targets | Increase button sizes to 48px minimum |
-| Sidebar covers content | Bottom nav with safe area padding |
-| Scrollable content | Optimize for thumb reach zones |
-| Font sizes too small | Base 16px, scale up for readability |
-| No touch feedback | Add haptic-like visual feedback on taps |
+* Resources
+* Generators
+* Materials
 
-## Implementation Plan
+### Dependencies
 
-### Phase 1: Fix Core Game Engine
-1. **Fix initialization chain**:
-   - Load all configs with `await`
-   - Initialize game state
-   - Start game loop
-   - Mount Vue app
+* Content drives unlocks and progression
 
-2. **Add main UI components**:
-   - Click button (large, center-bottom for thumb reach)
-   - Resource display bar
-   - Generator shop
-   - Basic navigation tabs
+### Scaling, Bonuses, Penalties & Effects
 
-### Phase 2: Balance Economy
-3. **Tune click value**:
-   - Base click: 10 time shards
-   - Add "Click Power" upgrade that multiplies
+* Higher-tier materials apply stronger modifiers
+* Rare resources unlock exponential bonuses
 
-4. **Balance generator progression**:
-   - Reduce Time Warden cost to 5
-   - Add early-game catchup bonus (first 10 generators cost 50% less)
-   - Reduce cost multipliers slightly (1.10 instead of 1.15)
+---
 
-5. **Unlock secondary resources earlier**:
-   - When you own ANY generator, unlock that resource type
-   - Cosmic Energy: 1 Time Warden
-   - Stardust: 1 Cosmic Sailor
-   - etc.
+## Technical Requirements
 
-6. **Add missing items** to `config/items.json`:
-   - stellarFragment, plasmaBlade, voidShield, cosmicRing, boostPotion, wormholeKey, quantumCrystal, timekeepersAmulet
+### UX/UI
 
-### Phase 3: Mobile Optimization
-7. **CSS improvements**:
-   ```css
-   /* Touch-friendly targets */
-   .btn, .nav-item { min-height: 48px; min-width: 48px; }
-   
-   /* Bottom navigation safe area */
-   .sidebar { padding-bottom: env(safe-area-inset-bottom); }
-   
-   /* Larger fonts */
-   html { font-size: 17px; }
-   
-   /* Better thumb reach */
-   .main-action-area { padding-bottom: 120px; }
-   ```
+* Mobile-first layout
+* Max width 640px
+* No horizontal scrolling
 
-8. **UI layout for mobile**:
-   - Click button: bottom-center, large (150px)
-   - Resources: top sticky bar
-   - Shop: swipeable cards or accordion
-   - Navigation: bottom tab bar
+### Game Objects & Behaviour
 
-### Phase 4: Progression Feel Good
-9. **Achievement rewards**:
-   - First shard: +10 shards (immediate gratification)
-   - 100 shards: +50 shards
-   - First generator: +5 of that generator type free
-   - 10 generators: Unlock all upgrade categories
+* SPA architecture
+* Central GameState
 
-10. **Visual feedback**:
-    - Floating numbers on click
-    - Screen shake on big purchases
-    - Particle effects on achievements
-    - Progress bars toward next unlock
+### Dependencies
 
-## Files to Modify
+* Vue UI bound to GameState
+* No direct DOM manipulation
 
-| File | Changes |
-|------|---------|
-| `index.html` | Fix initialization, add UI template |
-| `js/game/GameLoop.js` | Ensure init/start called |
-| `js/game/GameState.js` | Fix config loading dependency |
-| `config/resources.json` | Lower base costs |
-| `config/generators.json` | Reduce costs, adjust PPS |
-| `config/items.json` | Add missing item definitions |
-| `config/achievements.json` | Adjust rewards |
-| `css/styles.css` | Mobile optimizations, larger touch targets |
+### Scaling, Bonuses, Penalties & Effects
 
-## Success Criteria
-- [ ] Game loads and runs without errors
-- [ ] Click generates resources visibly
-- [ ] Can buy first generator within 30 seconds of play
-- [ ] UI works on 375px width (iPhone SE)
-- [ ] Touch targets ≥ 48px
-- [ ] Resources display update in real-time
-- [ ] Progression feels rewarding (never stuck, always progressing)
+* Performance scaling via batching and caching
+
+---
+
+## UI / UX Design
+
+### UX/UI
+
+#### Layout
+
+* Top resource bar (persistent)
+* Left vertical tab bar (icons only)
+* Single active content panel
+
+#### Interaction
+
+* Purchase multipliers:
+
+  * 1 / 10 / 100 / MAX
+* Highlight selected multiplier
+* Disable unavailable actions
+
+#### Feedback Rules
+
+* Every purchase:
+
+  * Resource animation
+  * Delta display
+* Every unlock:
+
+  * Pulse animation
+  * Notification
+* PPS changes:
+
+  * Trigger breakdown update
+
+#### Tooltips
+
+* Tap = open
+* Tap outside = close
+* Optional hold = 500ms
+
+### Game Objects & Behaviour
+
+* UI components are stateless
+* Driven entirely by GameState
+
+### Dependencies
+
+* Reads:
+
+  * resources
+  * generators
+  * modifiers
+  * unlocks
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Highlight most efficient upgrades
+* Detect stagnation and suggest actions
+
+---
+
+## Core Gameplay Loop
+
+### UX/UI
+
+* Real-time feedback
+* Visible PPS growth indicators
+
+### Game Objects & Behaviour
+
+* Click → resource gain
+* Generators → passive PPS
+* Tick-based updates
+
+### Dependencies
+
+* Uses Modifier System
+* Uses Formula Engine
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Early: rapid gains
+* Mid: synergy-based growth
+* Late: diminishing returns
+
+---
+
+## Economy Model
+
+### UX/UI
+
+* Display progression speed clearly
+* Show next milestone
+
+### Game Objects & Behaviour
+
+* Growth curves:
+
+  * Linear → Exponential → Logarithmic
+
+### Dependencies
+
+* Driven by generators, upgrades, prestige
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Inflation controls:
+
+  * Soft caps
+  * Hard caps
+  * Diminishing returns
+
+---
+
+## Tick System & Game Loop
+
+### UX/UI
+
+* Smooth updates (no stutter)
+* No visible tick delay
+
+### Game Objects & Behaviour
+
+* Logic tick: 1/sec
+* Render: 60 FPS
+* Offline simulation
+
+### Dependencies
+
+* Event queue
+* Modifier cache
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Offline gains capped
+* Tick batching for performance
+
+---
+
+## Resources System
+
+### UX/UI
+
+* Top bar display
+* Formatted values (K, M, B)
+
+### Game Objects & Behaviour
+
+* Properties:
+
+  * quantity
+  * PPS
+
+### Dependencies
+
+* Generated by generators
+* Modified by upgrades
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Value scaling:
+
+  * Base × Growth
+* Global and local modifiers applied
+
+---
+
+## Generators System
+
+### UX/UI
+
+* Card layout
+* Buy buttons + multiplier
+* Efficiency indicator
+
+### Game Objects & Behaviour
+
+* Base output
+
+* Cost scaling:
+
+  * BaseCost × (GrowthRate ^ quantity)
+
+* Unlock rules:
+
+  * Resource threshold
+  * Previous generator count
+
+### Dependencies
+
+* Produces resources
+* Affected by modifiers
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Exponential cost scaling
+* Soft caps increase growth rate
+* Efficiency decreases over time
+
+---
+
+## Items & Inventory
+
+### UX/UI
+
+* Inventory grid
+* Equip/unequip actions
+
+### Game Objects & Behaviour
+
+* Types:
+
+  * Equipable
+  * Consumable
+  * Ingredient
+
+### Dependencies
+
+* Affects modifier system
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Items provide additive/multiplicative bonuses
+* Rare items provide unique effects
+
+---
+
+## Character System
+
+### UX/UI
+
+* Character panel
+* Equipment slots
+
+### Game Objects & Behaviour
+
+* Bonuses
+* Active limits
+
+### Dependencies
+
+* Uses items
+* Affects modifiers
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Unlock additional slots
+* Scaling bonuses per level
+
+---
+
+## Modifier System
+
+### UX/UI
+
+* Display active modifiers list
+
+### Game Objects & Behaviour
+
+* Types:
+
+  * Additive
+  * Multiplicative
+
+* Stacking Rules:
+
+  * Base value
+  * Additive modifiers
+  * Multiplicative modifiers
+  * Caps applied
+
+### Dependencies
+
+* Used by all systems
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Diminishing returns
+* Priority tiers:
+
+  * Local
+  * Global
+
+---
+
+## Formula Engine
+
+### UX/UI
+
+* Expose breakdown for debugging
+
+### Game Objects & Behaviour
+
+* Central calculation system
+* No direct math outside engine
+
+### Dependencies
+
+* Modifier system
+* Game state
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Enforces consistent scaling rules
+
+---
+
+## Dependency Graph
+
+### UX/UI
+
+* Not exposed (debug only)
+
+### Game Objects & Behaviour
+
+* One-directional flow:
+
+  * Generators → Resources → Upgrades → Modifiers
+
+### Dependencies
+
+* No circular logic allowed
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Ensures deterministic outcomes
+
+---
+
+## Drop & Loot System
+
+### UX/UI
+
+* Drop animations
+* Loot notifications
+
+### Game Objects & Behaviour
+
+* JSON-defined drop tables
+
+### Dependencies
+
+* Generator activity
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Log-based drop scaling
+* Boosted by modifiers
+
+---
+
+## Prestige System
+
+### UX/UI
+
+* Reset confirmation modal
+* Gain preview
+
+### Game Objects & Behaviour
+
+* Multi-tier resets
+
+### Dependencies
+
+* Total resource accumulation
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Permanent multipliers
+* Reset penalties
+
+---
+
+## Achievement System
+
+### UX/UI
+
+* Achievement panel
+* Unlock notifications
+
+### Game Objects & Behaviour
+
+* Milestone tracking
+
+### Dependencies
+
+* All systems
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Rewards boost progression
+
+---
+
+## Upgrade System
+
+### UX/UI
+
+* Upgrade list
+* Highlight best upgrades
+
+### Game Objects & Behaviour
+
+* Types:
+
+  * Flat
+  * Multipliers
+  * Unlocks
+
+### Dependencies
+
+* Resources
+* Generators
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Efficiency-based recommendations
+
+---
+
+## Events System
+
+### UX/UI
+
+* Timed popups
+
+### Game Objects & Behaviour
+
+* Random events
+* Temporary effects
+
+### Dependencies
+
+* Game progression
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Rarity tiers
+* Time-limited bonuses
+
+---
+
+## Artifact System
+
+### UX/UI
+
+* Artifact collection display
+
+### Game Objects & Behaviour
+
+* Permanent modifiers
+
+### Dependencies
+
+* Drops and events
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Tier-based strength scaling
+
+---
+
+## Save System
+
+### UX/UI
+
+* Save/load indicators
+
+### Game Objects & Behaviour
+
+* localStorage persistence
+
+### Dependencies
+
+* GameState
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Offline progression calculation
+
+---
+
+## Save Versioning
+
+### UX/UI
+
+* Not visible
+
+### Game Objects & Behaviour
+
+* Version tracking
+* Migration logic
+
+### Dependencies
+
+* Save system
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Ensures compatibility across updates
+
+---
+
+## Data Schema Definitions
+
+### UX/UI
+
+* Not exposed
+
+### Game Objects & Behaviour
+
+* Strict JSON schemas
+
+### Dependencies
+
+* All systems
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Enables safe scaling via config
+
+---
+
+## Dev Tools
+
+### UX/UI
+
+* Debug panel
+
+### Game Objects & Behaviour
+
+* Resource injection
+* Speed control
+
+### Dependencies
+
+* GameState
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Used for balancing only
+
+---
+
+## Performance Constraints
+
+### UX/UI
+
+* No frame drops
+
+### Game Objects & Behaviour
+
+* Cached calculations
+* Batched updates
+
+### Dependencies
+
+* Tick system
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Limits active computations
+
+---
+
+## Architecture & File Structure
+
+### UX/UI
+
+* Component-based structure
+
+### Game Objects & Behaviour
+
+* /core
+* /game
+* /ui
+* /config
+
+### Dependencies
+
+* Modular system design
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Supports expansion
+
+---
+
+## Validation & Success Criteria
+
+### UX/UI
+
+* Smooth interaction
+
+### Game Objects & Behaviour
+
+* Systems function correctly
+
+### Dependencies
+
+* All systems validated
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Stable long-term progression
+
+---
+
+## Numeric Rules (Global)
+
+### UX/UI
+
+* Formatted numbers (K, M, B)
+
+### Game Objects & Behaviour
+
+* Float-based calculations
+
+### Dependencies
+
+* Used globally
+
+### Scaling, Bonuses, Penalties & Effects
+
+* Consistent rounding rules
+* Prevents drift and instability
