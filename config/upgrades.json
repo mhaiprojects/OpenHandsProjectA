@@ -21,64 +21,64 @@
   ],
   "upgrades": [
     {
+      "codeName": "clickMultiplier",
+      "displayName": "Click Power",
+      "description": "Click generates 3x resources",
+      "category": "global",
+      "icon": "👆",
+      "cost": 50,
+      "costResource": "timeShards",
+      "effect": { "type": "clickMultiplier", "multiplier": 3 },
+      "unlockRequirement": null,
+      "maxPurchases": 5
+    },
+    {
       "codeName": "temporalAcceleration",
       "displayName": "Temporal Acceleration",
       "description": "Time Wardens work 50% faster",
       "category": "generator",
       "icon": "⏰",
-      "cost": 500,
+      "cost": 100,
       "costResource": "timeShards",
       "effect": { "type": "generatorMultiplier", "generator": "timeWarden", "multiplier": 1.5 },
-      "unlockRequirement": { "generator": "timeWarden", "quantity": 10 },
-      "maxPurchases": 1
+      "unlockRequirement": { "generator": "timeWarden", "quantity": 1 },
+      "maxPurchases": 3
     },
     {
       "codeName": "stellarEfficiency",
       "displayName": "Stellar Efficiency",
-      "description": "All stellar generators +100% PPS",
+      "description": "All stellar generators +50% PPS",
       "category": "generator",
       "icon": "⭐",
-      "cost": 2500,
-      "costResource": "stardust",
-      "effect": { "type": "categoryMultiplier", "category": "stellar", "multiplier": 2.0 },
-      "unlockRequirement": { "generator": "starForge", "quantity": 5 },
-      "maxPurchases": 1
+      "cost": 500,
+      "costResource": "timeShards",
+      "effect": { "type": "categoryMultiplier", "category": "stellar", "multiplier": 1.5 },
+      "unlockRequirement": { "generator": "cosmicSailor", "quantity": 1 },
+      "maxPurchases": 3
     },
     {
       "codeName": "voidMastery",
       "displayName": "Void Mastery",
-      "description": "Void generators produce +75% more",
+      "description": "Void generators produce +50% more",
       "category": "generator",
       "icon": "🌀",
-      "cost": 50000,
-      "costResource": "voidEssence",
-      "effect": { "type": "categoryMultiplier", "category": "void", "multiplier": 1.75 },
-      "unlockRequirement": { "generator": "voidHarvester", "quantity": 5 },
-      "maxPurchases": 1
+      "cost": 2000,
+      "costResource": "timeShards",
+      "effect": { "type": "categoryMultiplier", "category": "void", "multiplier": 1.5 },
+      "unlockRequirement": { "generator": "voidHarvester", "quantity": 1 },
+      "maxPurchases": 3
     },
     {
       "codeName": "cosmicSynergy",
       "displayName": "Cosmic Synergy",
-      "description": "Cosmic generators gain +100% efficiency",
+      "description": "Cosmic generators gain +50% efficiency",
       "category": "generator",
       "icon": "🌌",
-      "cost": 250000,
-      "costResource": "quantumFlux",
-      "effect": { "type": "categoryMultiplier", "category": "cosmic", "multiplier": 2.0 },
-      "unlockRequirement": { "generator": "quantumProcessor", "quantity": 3 },
-      "maxPurchases": 1
-    },
-    {
-      "codeName": "clickMultiplier",
-      "displayName": "Click Power",
-      "description": "Click generates 5x resources",
-      "category": "global",
-      "icon": "👆",
-      "cost": 1000,
+      "cost": 8000,
       "costResource": "timeShards",
-      "effect": { "type": "clickMultiplier", "multiplier": 5 },
-      "unlockRequirement": { "generator": "timeWarden", "quantity": 5 },
-      "maxPurchases": 1
+      "effect": { "type": "categoryMultiplier", "category": "cosmic", "multiplier": 1.5 },
+      "unlockRequirement": { "generator": "quantumProcessor", "quantity": 1 },
+      "maxPurchases": 3
     },
     {
       "codeName": "globalProduction",
@@ -86,11 +86,11 @@
       "description": "All generators +25% PPS",
       "category": "global",
       "icon": "🌐",
-      "cost": 10000,
-      "costResource": "cosmicEnergy",
+      "cost": 1000,
+      "costResource": "timeShards",
       "effect": { "type": "globalMultiplier", "multiplier": 1.25 },
-      "unlockRequirement": { "generator": "cosmicSailor", "quantity": 10 },
-      "maxPurchases": 3
+      "unlockRequirement": { "generator": "timeWarden", "quantity": 1 },
+      "maxPurchases": 10
     },
     {
       "codeName": "resourceBoost",
@@ -98,34 +98,34 @@
       "description": "All resource gains +50%",
       "category": "global",
       "icon": "📈",
-      "cost": 50000,
-      "costResource": "stardust",
+      "cost": 5000,
+      "costResource": "timeShards",
       "effect": { "type": "resourceMultiplier", "multiplier": 1.5 },
-      "unlockRequirement": { "generator": "starForge", "quantity": 10 },
-      "maxPurchases": 2
+      "unlockRequirement": { "generator": "cosmicSailor", "quantity": 1 },
+      "maxPurchases": 5
     },
     {
       "codeName": "earlyGameBoost",
       "displayName": "Early Game Boost",
-      "description": "First 100 of each generator +200% PPS",
+      "description": "First 50 of each generator +100% PPS",
       "category": "global",
       "icon": "🚀",
-      "cost": 25000,
+      "cost": 500,
       "costResource": "timeShards",
-      "effect": { "type": "earlyGameBonus", "multiplier": 3.0, "threshold": 100 },
+      "effect": { "type": "earlyGameBonus", "multiplier": 2.0, "threshold": 50 },
       "unlockRequirement": null,
       "maxPurchases": 1
     },
     {
       "codeName": "unlockAllGenerators",
       "displayName": "Unlock All Paths",
-      "description": "All generator requirements reduced by 50%",
+      "description": "All generator requirements reduced by 75%",
       "category": "global",
       "icon": "🔓",
-      "cost": 500000,
-      "costResource": "cosmicEnergy",
+      "cost": 50000,
+      "costResource": "timeShards",
       "effect": { "type": "unlockAllGenerators" },
-      "unlockRequirement": { "generator": "quantumProcessor", "quantity": 10 },
+      "unlockRequirement": { "generator": "wormholeExtractor", "quantity": 1 },
       "maxPurchases": 1
     },
     {
@@ -134,10 +134,10 @@
       "description": "Prestige bonuses +25% more effective",
       "category": "global",
       "icon": "💫",
-      "cost": 1000000,
-      "costResource": "quantumFlux",
+      "cost": 100000,
+      "costResource": "timeShards",
       "effect": { "type": "prestigeMultiplier", "multiplier": 1.25 },
-      "unlockRequirement": { "generator": "wormholeExtractor", "quantity": 5 },
+      "unlockRequirement": { "generator": "antimatterReactor", "quantity": 1 },
       "maxPurchases": 5
     },
     {
@@ -146,8 +146,8 @@
       "description": "Offline production +100%",
       "category": "global",
       "icon": "📴",
-      "cost": 25000,
-      "costResource": "chrononParticles",
+      "cost": 5000,
+      "costResource": "timeShards",
       "effect": { "type": "offlineMultiplier", "multiplier": 2.0 },
       "unlockRequirement": { "generator": "chrononSynthesizer", "quantity": 1 },
       "maxPurchases": 1
@@ -158,34 +158,34 @@
       "description": "Item drop rates +50%",
       "category": "global",
       "icon": "📦",
-      "cost": 50000,
-      "costResource": "darkMatter",
+      "cost": 3000,
+      "costResource": "timeShards",
       "effect": { "type": "dropRateMultiplier", "multiplier": 1.5 },
-      "unlockRequirement": { "generator": "voidHarvester", "quantity": 10 },
-      "maxPurchases": 1
+      "unlockRequirement": { "generator": "voidHarvester", "quantity": 1 },
+      "maxPurchases": 3
     },
     {
       "codeName": "costReduction",
       "displayName": "Efficient Purchasing",
-      "description": "All generator costs -15%",
+      "description": "All generator costs -10%",
       "category": "global",
       "icon": "💰",
-      "cost": 100000,
-      "costResource": "stardust",
-      "effect": { "type": "costReduction", "multiplier": 0.85 },
-      "unlockRequirement": { "generator": "nebulaEngine", "quantity": 3 },
-      "maxPurchases": 3
+      "cost": 10000,
+      "costResource": "timeShards",
+      "effect": { "type": "costReduction", "multiplier": 0.9 },
+      "unlockRequirement": { "generator": "nebulaEngine", "quantity": 1 },
+      "maxPurchases": 5
     },
     {
       "codeName": "maxTierBonus",
       "displayName": "Maximum Tier",
-      "description": "Generators beyond tier 5 get +500% PPS",
+      "description": "Generators beyond tier 5 get +200% PPS",
       "category": "global",
       "icon": "🔝",
-      "cost": 5000000,
-      "costResource": "antimatter",
-      "effect": { "type": "maxTierBonus", "multiplier": 6.0 },
-      "unlockRequirement": { "generator": "antimatterReactor", "quantity": 2 },
+      "cost": 500000,
+      "costResource": "timeShards",
+      "effect": { "type": "maxTierBonus", "multiplier": 3.0 },
+      "unlockRequirement": { "generator": "singularityManipulator", "quantity": 1 },
       "maxPurchases": 1
     }
   ]
