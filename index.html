@@ -574,12 +574,17 @@
           const quantity = this.state.generators[codeName]?.quantityPurchased || 0;
           const costMultiplier = Math.pow(gen.costMultiplier, quantity);
           
-          // Apply cost reduction from upgrades
+          // Apply cost reduction from upgrades (check purchaseCount > 0 for multi-purchase upgrades)
           let reduction = 1;
           const upgrades = window.gameConfig?.getAllUpgrades() || [];
           for (const upgrade of upgrades) {
-            if (upgrade.effect?.type === 'costReduction' && this.state.upgrades[upgrade.codeName]?.purchased) {
-              reduction *= upgrade.effect.multiplier;
+            if (upgrade.effect?.type === 'costReduction') {
+              const purchased = upgrade.maxPurchases === 1 
+                ? this.state.upgrades[upgrade.codeName]?.purchased
+                : (this.state.upgrades[upgrade.codeName]?.purchaseCount || 0) > 0;
+              if (purchased) {
+                reduction *= upgrade.effect.multiplier;
+              }
             }
           }
           
@@ -1408,6 +1413,68 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Settings Tab -->
+                <div v-if="activeTab === 'settings'" class="tab-content active">
+                  <div class="card">
+                    <div class="card-header">
+                      <h2 class="card-title">⚙️ Settings</h2>
+                    </div>
+                    
+                    <div class="settings-section">
+                      <h3>🧪 Game Testing</h3>
+                      <p class="text-muted">Run built-in tests to verify game systems are working correctly.</p>
+                      <button 
+                        class="btn btn-primary btn-lg mt-md" 
+                        @click="runTests"
+                        :disabled="testRunning"
+                      >
+                        {{ testRunning ? '⏳ Running...' : '▶️ Run All Tests' }}
+                      </button>
+                      
+                      <div v-if="testResults" class="test-results mt-lg">
+                        <div class="test-summary" :class="{ 'all-passed': testResults.failed === 0 }">
+                          <span v-if="testResults.failed === 0">✅ All {{ testResults.total }} tests passed!</span>
+                          <span v-else>⚠️ {{ testResults.passed }}/{{ testResults.total }} tests passed</span>
+                        </div>
+                        
+                        <div class="test-list">
+                          <div 
+                            v-for="(test, index) in testResults.tests" 
+                            :key="index"
+                            class="test-item"
+                            :class="{ passed: test.passed, failed: !test.passed }"
+                          >
+                            <span class="test-icon">{{ test.passed ? '✅' : '❌' }}</span>
+                            <span class="test-name">{{ test.name }}</span>
+                            <span v-if="test.message" class="test-message">{{ test.message }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="settings-section mt-lg">
+                      <h3>💾 Save Management</h3>
+                      <div class="btn-group">
+                        <button class="btn btn-secondary" @click="saveGame">💾 Save</button>
+                        <button class="btn btn-secondary" @click="exportSave">📤 Export</button>
+                        <button class="btn btn-secondary" @click="showImportModal = true">📥 Import</button>
+                      </div>
+                    </div>
+                    
+                    <div class="settings-section mt-lg">
+                      <h3>🆕 Game Controls</h3>
+                      <button class="btn btn-warning" @click="confirmReset">🔄 Reset Game</button>
+                      <button class="btn btn-primary mt-md" @click="newGame">🆕 New Game</button>
+                    </div>
+                    
+                    <div class="settings-section mt-lg">
+                      <h3>ℹ️ About</h3>
+                      <p class="text-muted">AFK AI - Idle Progressive Game Framework v2</p>
+                      <p class="text-muted">Vue 3 + Config-driven architecture</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Click Button -->
@@ -1471,7 +1538,8 @@
               { id: 'inventory', label: 'Inventory', icon: '🎒' },
               { id: 'achievements', label: 'Achievements', icon: '🏆' },
               { id: 'stats', label: 'Stats', icon: '📊' },
-              { id: 'prestige', label: 'Prestige', icon: '🔄' }
+              { id: 'prestige', label: 'Prestige', icon: '🔄' },
+              { id: 'settings', label: 'Settings', icon: '⚙️' }
             ],
             categories: [],
             upgradeCategories: [],
@@ -1480,7 +1548,9 @@
             characters: [],
             items: [],
             achievements: [],
-            expandedCategories: {}
+            expandedCategories: {},
+            testResults: null,
+            testRunning: false
           };
         },
         computed: {
@@ -1624,7 +1694,7 @@
             }
           },
           handleUpgradePurchase(codeName) {
-            if (!this.isUpgradePurchased(codeName) && this.isUpgradeUnlocked(codeName)) {
+            if (!this.isUpgradePurchased(codeName) && this.isUpgradeUnlocked(codeName) && this.canAffordUpgrade(codeName)) {
               if (window.gameState?.purchaseUpgrade(codeName)) {
                 this.showNotification('Upgrade purchased!', 'success', '✓');
               }
@@ -1702,6 +1772,167 @@
               } else {
                 this.showNotification('Failed to import save', 'error', '✗');
               }
+            }
+          },
+          runTests() {
+            this.testRunning = true;
+            this.testResults = { tests: [], passed: 0, failed: 0, total: 0 };
+            
+            const addResult = (name, passed, message = '') => {
+              this.testResults.tests.push({ name, passed, message });
+              if (passed) this.testResults.passed++;
+              else this.testResults.failed++;
+              this.testResults.total++;
+            };
+            
+            // Test 1: Config Loading
+            try {
+              const resources = window.gameConfig?.getAllResources() || [];
+              addResult('Config - Resources loaded', resources.length > 0, `Loaded ${resources.length} resources`);
+            } catch (e) {
+              addResult('Config - Resources loaded', false, e.message);
+            }
+            
+            try {
+              const generators = window.gameConfig?.getAllGenerators() || [];
+              addResult('Config - Generators loaded', generators.length > 0, `Loaded ${generators.length} generators`);
+            } catch (e) {
+              addResult('Config - Generators loaded', false, e.message);
+            }
+            
+            try {
+              const upgrades = window.gameConfig?.getAllUpgrades() || [];
+              addResult('Config - Upgrades loaded', upgrades.length > 0, `Loaded ${upgrades.length} upgrades`);
+            } catch (e) {
+              addResult('Config - Upgrades loaded', false, e.message);
+            }
+            
+            // Test 2: Game State
+            try {
+              const hasState = window.gameState?.state?.resources !== undefined;
+              addResult('Game State - Resources initialized', hasState);
+            } catch (e) {
+              addResult('Game State - Resources initialized', false, e.message);
+            }
+            
+            // Test 3: Game Loop
+            try {
+              const running = window.gameLoop?.isRunning === true;
+              addResult('Game Loop - Running', running);
+            } catch (e) {
+              addResult('Game Loop - Running', false, e.message);
+            }
+            
+            // Test 4: Unlock System - Progressive unlock test
+            try {
+              // Reset for test
+              window.gameState.state.generators = {};
+              window.gameState.state.resources.timeShards.quantity = 1000000;
+              
+              // Buy first generator
+              window.gameState.purchaseGenerator('timeWarden');
+              const hasTimeWarden = window.gameState.state.generators.timeWarden?.quantityPurchased > 0;
+              addResult('Generator Purchase - Time Warden', hasTimeWarden);
+              
+              // Check if second generator unlocked
+              const cosmicSailorUnlocked = window.gameState.isGeneratorUnlocked('cosmicSailor');
+              addResult('Unlock System - Cosmic Sailor unlocks with 1 Time Warden', cosmicSailorUnlocked);
+              
+              // Buy cosmic sailor and check next
+              window.gameState.purchaseGenerator('cosmicSailor');
+              const starForgeUnlocked = window.gameState.isGeneratorUnlocked('starForge');
+              addResult('Unlock System - Star Forge unlocks with 1 Cosmic Sailor', starForgeUnlocked);
+            } catch (e) {
+              addResult('Unlock System - Progressive unlock test', false, e.message);
+            }
+            
+            // Test 5: Cost Calculation
+            try {
+              const cost = window.gameState.getGeneratorCost('timeWarden');
+              const isValid = cost.timeShards > 0;
+              addResult('Cost Calculation - Valid cost returned', isValid, `Cost: ${JSON.stringify(cost)}`);
+            } catch (e) {
+              addResult('Cost Calculation - Valid cost returned', false, e.message);
+            }
+            
+            // Test 6: Can Afford Check
+            try {
+              window.gameState.state.resources.timeShards.quantity = 1000000;
+              const canAfford = window.gameState.canAffordGenerator('timeWarden');
+              addResult('Can Afford - Returns true when resources available', canAfford);
+              
+              window.gameState.state.resources.timeShards.quantity = 0;
+              const cannotAfford = !window.gameState.canAffordGenerator('timeWarden');
+              addResult('Can Afford - Returns false when resources insufficient', cannotAfford);
+            } catch (e) {
+              addResult('Can Afford - Check test', false, e.message);
+            }
+            
+            // Test 7: Click Handler
+            try {
+              const initialShards = window.gameState.state.resources.timeShards.quantity;
+              window.gameState.handleClick();
+              const clicked = window.gameState.state.resources.timeShards.quantity > initialShards;
+              addResult('Click Handler - Increases resources', clicked);
+            } catch (e) {
+              addResult('Click Handler - Increases resources', false, e.message);
+            }
+            
+            // Test 8: PPS Calculation
+            try {
+              window.gameState.state.generators.timeWarden.quantityPurchased = 10;
+              const pps = window.gameState.calculatePPS();
+              const ppsValid = pps > 0;
+              addResult('PPS Calculation - Returns valid PPS', ppsValid, `PPS: ${pps.toFixed(2)}`);
+            } catch (e) {
+              addResult('PPS Calculation - Returns valid PPS', false, e.message);
+            }
+            
+            // Test 9: Upgrade System
+            try {
+              window.gameState.state.resources.timeShards.quantity = 100000;
+              const canAffordUpgrade = window.gameState.canAffordUpgrade('clickMultiplier');
+              addResult('Upgrade - Click Power purchasable', canAffordUpgrade);
+            } catch (e) {
+              addResult('Upgrade - Click Power purchasable', false, e.message);
+            }
+            
+            // Test 10: Save System
+            try {
+              const hasSaveManager = window.gameLoop?.saveManager !== undefined;
+              addResult('Save System - SaveManager initialized', hasSaveManager);
+            } catch (e) {
+              addResult('Save System - SaveManager initialized', false, e.message);
+            }
+            
+            this.testRunning = false;
+            this.showNotification(
+              `Tests: ${this.testResults.passed}/${this.testResults.total} passed`,
+              this.testResults.failed === 0 ? 'success' : 'warning',
+              this.testResults.failed === 0 ? '✓' : '⚠'
+            );
+          },
+          newGame() {
+            if (confirm('Start a new game? All progress will be lost!')) {
+              if (window.gameLoop) {
+                window.gameLoop.newGame();
+                this.showNotification('New game started!', 'success', '🆕');
+              }
+            }
+          },
+          confirmReset() {
+            if (confirm('Reset all game progress? This cannot be undone!')) {
+              if (window.gameLoop) {
+                window.gameLoop.state.resetGame();
+                window.gameLoop.forceSave();
+                this.showNotification('Game reset!', 'warning', '🔄');
+              }
+            }
+          },
+          saveGame() {
+            if (window.gameLoop) {
+              window.gameLoop.forceSave();
+              this.showNotification('Game saved!', 'success', '💾');
             }
           }
         }
