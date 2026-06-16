@@ -1419,17 +1419,48 @@
                     </div>
                     
                     <div class="settings-section">
+                      <h3>💾 Save Management</h3>
+                      <div class="btn-group">
+                        <button class="btn btn-secondary" @click="saveGame">💾 Save</button>
+                        <button class="btn btn-secondary" @click="exportSave">📤 Export</button>
+                        <button class="btn btn-secondary" @click="showImportModal = true">📥 Import</button>
+                      </div>
+                      <p class="text-muted mt-sm">Last saved: {{ lastSaveTime || 'Never' }}</p>
+                    </div>
+                    
+                    <div class="settings-section">
+                      <h3>📊 Game Stats</h3>
+                      <div class="stats-grid">
+                        <div class="stat-item">
+                          <span class="label">Total Clicks:</span>
+                          <span class="value">{{ gameState.statistics?.totalClicks || 0 }}</span>
+                        </div>
+                        <div class="stat-item">
+                          <span class="label">Play Time:</span>
+                          <span class="value">{{ formatPlayTime(gameState.statistics?.totalPlayTime || 0) }}</span>
+                        </div>
+                        <div class="stat-item">
+                          <span class="label">Generators Owned:</span>
+                          <span class="value">{{ gameState.statistics?.generatorsOwned || 0 }}</span>
+                        </div>
+                        <div class="stat-item">
+                          <span class="label">Achievements:</span>
+                          <span class="value">{{ gameState.statistics?.achievementsUnlocked || 0 }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="settings-section">
                       <h3>🧪 Game Testing</h3>
-                      <p class="text-muted">Run built-in tests to verify game systems are working correctly.</p>
                       <button 
-                        class="btn btn-primary btn-lg mt-md" 
+                        class="btn btn-primary" 
                         @click="runTests"
                         :disabled="testRunning"
                       >
                         {{ testRunning ? '⏳ Running...' : '▶️ Run All Tests' }}
                       </button>
                       
-                      <div v-if="testResults" class="test-results mt-lg">
+                      <div v-if="testResults" class="test-results mt-md">
                         <div class="test-summary" :class="{ 'all-passed': testResults.failed === 0 }">
                           <span v-if="testResults.failed === 0">✅ All {{ testResults.total }} tests passed!</span>
                           <span v-else>⚠️ {{ testResults.passed }}/{{ testResults.total }} tests passed</span>
@@ -1450,25 +1481,20 @@
                       </div>
                     </div>
                     
-                    <div class="settings-section mt-lg">
-                      <h3>💾 Save Management</h3>
-                      <div class="btn-group">
-                        <button class="btn btn-secondary" @click="saveGame">💾 Save</button>
-                        <button class="btn btn-secondary" @click="exportSave">📤 Export</button>
-                        <button class="btn btn-secondary" @click="showImportModal = true">📥 Import</button>
-                      </div>
-                    </div>
-                    
-                    <div class="settings-section mt-lg">
+                    <div class="settings-section">
                       <h3>🆕 Game Controls</h3>
-                      <button class="btn btn-warning" @click="confirmReset">🔄 Reset Game</button>
-                      <button class="btn btn-primary mt-md" @click="newGame">🆕 New Game</button>
+                      <div class="btn-group">
+                        <button class="btn btn-warning" @click="confirmReset">🔄 Reset Progress</button>
+                        <button class="btn btn-danger" @click="wipeAllData">🗑️ Wipe All Data</button>
+                      </div>
+                      <p class="text-muted mt-sm">Reset clears progress but keeps save. Wipe deletes everything.</p>
                     </div>
                     
-                    <div class="settings-section mt-lg">
+                    <div class="settings-section">
                       <h3>ℹ️ About</h3>
-                      <p class="text-muted">AFK AI - Idle Progressive Game Framework v2</p>
-                      <p class="text-muted">Vue 3 + Config-driven architecture</p>
+                      <p class="text-muted">AFK AI - Idle Progressive Game Framework</p>
+                      <p class="text-muted">Version 2.0 | Vue 3 + Config-driven</p>
+                      <p class="text-muted">Auto-saves every 10 seconds</p>
                     </div>
                   </div>
                 </div>
@@ -1547,8 +1573,13 @@
             achievements: [],
             expandedCategories: {},
             testResults: null,
-            testRunning: false
+            testRunning: false,
+            lastSaveTime: null
           };
+        },
+        mounted() {
+          this.updateSaveTime();
+          setInterval(() => this.updateSaveTime(), 10000);
         },
         computed: {
           gameState() {
@@ -1952,25 +1983,87 @@
           },
           newGame() {
             if (confirm('Start a new game? All progress will be lost!')) {
-              if (window.gameLoop) {
-                window.gameLoop.newGame();
-                this.showNotification('New game started!', 'success', '🆕');
-              }
+              this.clearAllData();
+              this.showNotification('New game started!', 'success', '🆕');
             }
           },
           confirmReset() {
             if (confirm('Reset all game progress? This cannot be undone!')) {
-              if (window.gameLoop) {
-                window.gameLoop.state.resetGame();
-                window.gameLoop.forceSave();
-                this.showNotification('Game reset!', 'warning', '🔄');
+              this.clearAllData();
+              this.showNotification('Game reset!', 'warning', '🔄');
+            }
+          },
+          clearAllData() {
+            // Clear localStorage
+            localStorage.removeItem('afkGameSave');
+            localStorage.removeItem('afkGameHistory');
+            
+            // Reset game state
+            if (window.gameState) {
+              window.gameState.state = window.gameState.getDefaultState();
+              window.gameState.state.init();
+            }
+            
+            // Update gameLoop reference
+            if (window.gameLoop) {
+              window.gameLoop.state = window.gameState.state;
+              window.gameLoop.forceSave();
+            }
+            
+            // Reset test results
+            this.testResults = null;
+            this.lastSaveTime = 'Just now';
+            
+            // Show notification
+            console.log('Game data cleared successfully');
+          },
+          wipeAllData() {
+            if (confirm('⚠️ WARNING: This will DELETE ALL GAME DATA permanently!\n\nThis includes:\n- All progress\n- All saves\n- All achievements\n\nThis cannot be undone!')) {
+              if (confirm('Are you absolutely sure? Type "yes" in the next prompt to confirm.')) {
+                // Clear all localStorage
+                localStorage.clear();
+                
+                // Reload the page to start fresh
+                window.location.reload();
               }
             }
+          },
+          updateSaveTime() {
+            const lastSave = localStorage.getItem('afkGameSave');
+            if (lastSave) {
+              try {
+                const save = JSON.parse(lastSave);
+                this.lastSaveTime = this.formatRelativeTime(save.timestamp);
+              } catch {
+                this.lastSaveTime = 'Unknown';
+              }
+            } else {
+              this.lastSaveTime = 'Never';
+            }
+          },
+          formatRelativeTime(timestamp) {
+            if (!timestamp) return 'Never';
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' min ago';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+            return Math.floor(seconds / 86400) + ' days ago';
+          },
+          formatPlayTime(seconds) {
+            if (!seconds || seconds < 60) return '0:00';
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            if (hrs > 0) {
+              return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
           },
           saveGame() {
             if (window.gameLoop) {
               window.gameLoop.forceSave();
               this.showNotification('Game saved!', 'success', '💾');
+              this.updateSaveTime();
             }
           }
         }

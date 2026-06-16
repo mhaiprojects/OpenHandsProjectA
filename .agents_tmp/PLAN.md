@@ -744,3 +744,75 @@ Use git clone to fetch the repository, then checkout the specified branch.
 
 * Consistent rounding rules
 * Prevents drift and instability
+* Consistent rounding rules
+* Prevents drift and instability
+
+---
+
+# CORRECTED: Generator Unlock Requirements
+
+## Key Clarification
+- **Time Warden** → ONLY produces Time Shards
+- **All other generators** → produce different resources (cosmicEnergy, stardust, darkMatter, etc.)
+- **Time Shards** → Primary currency, earned via **clicks + generators**
+- **Unlock currency** → This is the **COST** you pay when purchasing, NOT a threshold
+
+### Correct Progression Chain
+
+Each generator requires:
+1. **X of the previous generator** in the chain
+2. **Pay Y timeShards** as the purchase cost
+
+| # | Generator | Requires | Cost (Time Shards) |
+|---|-----------|----------|-------------------|
+| 1 | Time Warden | (unlocked) | 10 |
+| 2 | Cosmic Sailor | 5 Time Wardens | 50 |
+| 3 | Star Forge | 5 Cosmic Sailors | 250 |
+| 4 | Void Harvester | 5 Star Forges | 1,000 |
+| 5 | Quantum Processor | 5 Void Harvesters | 4,000 |
+| 6 | Nebula Engine | 5 Quantum Processors | 15,000 |
+| 7 | Wormhole Extractor | 5 Nebula Engines | 60,000 |
+| 8 | Chronon Synthesizer | 5 Wormhole Extractors | 250,000 |
+| 9 | Antimatter Reactor | 5 Chronon Synthesizers | 1,000,000 |
+| 10 | Singularity Manipulator | 5 Antimatter Reactors | 4,000,000 |
+
+### Config Structure
+```json
+{
+  "codeName": "cosmicSailor",
+  "unlockRequirement": {
+    "generator": "timeWarden",
+    "quantity": 5
+  },
+  "baseCost": 50,
+  "costResource": "timeShards"
+}
+```
+
+### Logic Implementation
+```javascript
+// Cost calculation
+calculateGeneratorCost(codeName) {
+  const gen = this.config.getGenerator(codeName);
+  const state = this.state.generators[codeName];
+  const owned = state?.quantityPurchased || 0;
+  
+  return {
+    [gen.costResource]: Math.floor(gen.baseCost * Math.pow(gen.costMultiplier, owned))
+  };
+}
+
+// Unlock check (no currency threshold - just generator qty)
+isGeneratorUnlocked(codeName) {
+  const gen = this.config.getGenerator(codeName);
+  const req = gen.unlockRequirement;
+  
+  if (!req) return true;
+  
+  return this.state.generators[req.generator]?.quantityPurchased >= req.quantity;
+}
+```
+
+### Files to Modify
+- `config/generators.json` - Update unlockRequirements (remove currency field)
+- `js/game/GameState.js` - Update `isGeneratorUnlocked()` to only check generator qty

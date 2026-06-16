@@ -1193,3 +1193,46 @@ body {
   color: var(--color-success);
   font-weight: bold;
 }
+
+/* ============================================
+   Stats Grid
+   ============================================ */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.stat-item .label {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.stat-item .value {
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+/* ============================================
+   Button Variants
+   ============================================ */
+
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+  border-color: var(--color-danger);
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
