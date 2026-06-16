@@ -1168,45 +1168,38 @@
                       <span class="badge">Total PPS: {{ formatNumber(pps) }}/s</span>
                     </div>
                     
-                    <div v-for="category in categories" :key="category.codeName" class="category-section">
-                      <div class="category-header" @click="toggleCategory(category.codeName)">
-                        <span class="icon" :style="{ color: category.color }">{{ category.icon }}</span>
-                        <h3>{{ category.displayName }}</h3>
-                        <span class="count">{{ getCategoryOwned(category.codeName) }} owned</span>
-                        <span class="toggle">{{ expandedCategories[category.codeName] ? '▼' : '▶' }}</span>
-                      </div>
-                      
-                      <div v-show="expandedCategories[category.codeName]" class="category-content">
-                        <div 
-                          v-for="gen in getGeneratorsByCategory(category.codeName)" 
-                          :key="gen.codeName"
-                          class="generator-card"
-                          :class="{
-                            locked: !isGeneratorUnlocked(gen.codeName),
-                            unaffordable: isGeneratorUnlocked(gen.codeName) && !canAffordGenerator(gen.codeName)
-                          }"
-                          @click="handlePurchase(gen.codeName)"
-                        >
-                          <div class="icon">{{ gen.icon }}</div>
-                          <div class="generator-info">
-                            <h3>{{ gen.displayName }}</h3>
-                            <p>{{ gen.description }}</p>
-                            <span class="quantity" v-if="gameState.generators[gen.codeName]?.quantityPurchased > 0">
-                              Owned: {{ gameState.generators[gen.codeName].quantityPurchased }}
-                            </span>
-                          </div>
-                          <div class="generator-stats">
-                            <span class="cost">{{ formatCost(getGeneratorCost(gen.codeName)) }}</span>
-                            <span class="pps">+{{ formatNumber(calculatePPS(gen)) }}/s</span>
-                            <span class="purchased" v-if="gameState.generators[gen.codeName]?.quantityPurchased > 0">
-                              {{ gameState.generators[gen.codeName].quantityPurchased }}
-                            </span>
-                          </div>
+                    <div class="generators-list">
+                      <div 
+                        v-for="gen in generators" 
+                        :key="gen.codeName"
+                        class="generator-card"
+                        :class="{
+                          locked: !isGeneratorUnlocked(gen.codeName),
+                          unaffordable: isGeneratorUnlocked(gen.codeName) && !canAffordGenerator(gen.codeName)
+                        }"
+                        @click="handlePurchase(gen.codeName)"
+                      >
+                        <div class="generator-icon">{{ gen.icon }}</div>
+                        <div class="generator-info">
+                          <h3>{{ gen.displayName }}</h3>
+                          <p class="desc">{{ gen.description }}</p>
+                          <p class="produces">Produces: {{ gen.produces.map(p => p.amount + ' ' + p.resource).join(', ') }}</p>
+                          <p class="requires" v-if="!isGeneratorUnlocked(gen.codeName)">
+                            🔒 Requires: {{ gen.unlockRequirement?.generator || '???' }}
+                          </p>
+                          <span class="quantity" v-if="gameState.generators[gen.codeName]?.quantityPurchased > 0">
+                            Owned: {{ gameState.generators[gen.codeName].quantityPurchased }}
+                          </span>
                         </div>
-                        
-                        <div v-if="getGeneratorsByCategory(category.codeName).length === 0" class="empty-state">
-                          <span class="icon">🔒</span>
-                          <p>No generators unlocked yet</p>
+                        <div class="generator-stats">
+                          <div class="cost-info">
+                            <span class="label">Cost:</span>
+                            <span class="cost">{{ formatCost(getGeneratorCost(gen.codeName)) }}</span>
+                          </div>
+                          <div class="pps-info">
+                            <span class="label">PPS:</span>
+                            <span class="pps">+{{ formatNumber(calculatePPS(gen)) }}/s</span>
+                          </div>
                         </div>
                       </div>
                     </div>

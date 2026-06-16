@@ -1088,3 +1088,108 @@ body {
   gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
+
+/* ============================================
+   Simplified Generator List
+   ============================================ */
+
+.generators-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.generators-list .generator-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.generators-list .generator-card:hover:not(.locked) {
+  background: var(--color-bg-hover);
+  border-color: var(--color-primary);
+}
+
+.generators-list .generator-card.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.generators-list .generator-card.unaffordable {
+  opacity: 0.7;
+}
+
+.generators-list .generator-icon {
+  font-size: 2rem;
+  width: 50px;
+  text-align: center;
+}
+
+.generators-list .generator-info {
+  flex: 1;
+}
+
+.generators-list .generator-info h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.1rem;
+}
+
+.generators-list .generator-info .desc {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.generators-list .generator-info .produces {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--color-success);
+  font-size: 0.85rem;
+}
+
+.generators-list .generator-info .requires {
+  margin: 0;
+  color: var(--color-warning);
+  font-size: 0.85rem;
+}
+
+.generators-list .generator-info .quantity {
+  display: inline-block;
+  margin-top: var(--spacing-xs);
+  padding: 2px 8px;
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.generators-list .generator-stats {
+  text-align: right;
+  min-width: 150px;
+}
+
+.generators-list .cost-info,
+.generators-list .pps-info {
+  margin-bottom: var(--spacing-xs);
+}
+
+.generators-list .cost-info .label,
+.generators-list .pps-info .label {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  margin-right: var(--spacing-xs);
+}
+
+.generators-list .cost-info .cost {
+  color: var(--color-warning);
+  font-weight: bold;
+}
+
+.generators-list .pps-info .pps {
+  color: var(--color-success);
+  font-weight: bold;
+}

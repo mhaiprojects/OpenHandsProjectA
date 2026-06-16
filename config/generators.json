@@ -1,223 +1,70 @@
 {
   "generatorCategories": [
-    {
-      "codeName": "temporal",
-      "displayName": "Temporal",
-      "description": "Time-based generators",
-      "icon": "⏰",
-      "color": "#3b82f6"
-    },
-    {
-      "codeName": "stellar",
-      "displayName": "Stellar",
-      "description": "Star-based generators",
-      "icon": "⭐",
-      "color": "#f59e0b"
-    },
-    {
-      "codeName": "cosmic",
-      "displayName": "Cosmic",
-      "description": "Space-based generators",
-      "icon": "🌌",
-      "color": "#8b5cf6"
-    },
-    {
-      "codeName": "void",
-      "displayName": "Void",
-      "description": "Darkness-based generators",
-      "icon": "🌀",
-      "color": "#1f2937"
-    }
+    { "codeName": "temporal", "displayName": "Temporal", "description": "Time-based generators", "icon": "⏰", "color": "#3b82f6" },
+    { "codeName": "stellar", "displayName": "Stellar", "description": "Star-based generators", "icon": "⭐", "color": "#f59e0b" },
+    { "codeName": "cosmic", "displayName": "Cosmic", "description": "Space-based generators", "icon": "🌌", "color": "#8b5cf6" },
+    { "codeName": "void", "displayName": "Void", "description": "Darkness-based generators", "icon": "🌀", "color": "#1f2937" }
   ],
   "generators": [
     {
-      "codeName": "timeWarden",
-      "displayName": "Time Warden",
-      "description": "Guardians of temporal flow",
-      "category": "temporal",
-      "icon": "👤",
-      "baseCost": 10,
-      "costMultiplier": 1.15,
-      "basePPS": 1,
-      "ppsMultiplier": 1.2,
-      "unlockRequirement": null,
-      "produces": [
-        { "resource": "timeShards", "amount": 1 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "timeWarden", "displayName": "Time Warden", "description": "Guardians of temporal flow", "category": "temporal", "icon": "👤",
+      "baseCost": 10, "costMultiplier": 1.15, "basePPS": 1, "ppsMultiplier": 1.2, "unlockRequirement": null,
+      "produces": [{ "resource": "timeShards", "amount": 1 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 1 }]
     },
     {
-      "codeName": "cosmicSailor",
-      "displayName": "Cosmic Sailor",
-      "description": "Travelers of the cosmos",
-      "category": "stellar",
-      "icon": "🚀",
-      "baseCost": 50,
-      "costMultiplier": 1.15,
-      "basePPS": 3,
-      "ppsMultiplier": 1.25,
-      "unlockRequirement": { "generator": "timeWarden", "quantity": 1 },
-      "produces": [
-        { "resource": "cosmicEnergy", "amount": 0.5 },
-        { "resource": "timeShards", "amount": 2 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "cosmicSailor", "displayName": "Cosmic Sailor", "description": "Travelers of the cosmos", "category": "stellar", "icon": "🚀",
+      "baseCost": 50, "costMultiplier": 1.15, "basePPS": 3, "ppsMultiplier": 1.25, "unlockRequirement": { "generator": "timeWarden", "quantity": 1 },
+      "produces": [{ "resource": "cosmicEnergy", "amount": 0.5 }, { "resource": "timeShards", "amount": 2 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 1 }, { "resource": "cosmicEnergy", "multiplier": 0.5 }]
     },
     {
-      "codeName": "starForge",
-      "displayName": "Star Forge",
-      "description": "Forges stars into resources",
-      "category": "stellar",
-      "icon": "🔥",
-      "baseCost": 200,
-      "costMultiplier": 1.18,
-      "basePPS": 8,
-      "ppsMultiplier": 1.3,
-      "unlockRequirement": { "generator": "cosmicSailor", "quantity": 1 },
-      "produces": [
-        { "resource": "stardust", "amount": 0.5 },
-        { "resource": "timeShards", "amount": 5 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "starForge", "displayName": "Star Forge", "description": "Forges stars into resources", "category": "stellar", "icon": "🔥",
+      "baseCost": 200, "costMultiplier": 1.18, "basePPS": 8, "ppsMultiplier": 1.3, "unlockRequirement": { "generator": "cosmicSailor", "quantity": 1 },
+      "produces": [{ "resource": "stardust", "amount": 0.5 }, { "resource": "timeShards", "amount": 5 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 0.8 }, { "resource": "cosmicEnergy", "multiplier": 0.5 }, { "resource": "stardust", "multiplier": 0.5 }]
     },
     {
-      "codeName": "voidHarvester",
-      "displayName": "Void Harvester",
-      "description": "Harvests from the void",
-      "category": "void",
-      "icon": "🌑",
-      "baseCost": 800,
-      "costMultiplier": 1.2,
-      "basePPS": 20,
-      "ppsMultiplier": 1.4,
-      "unlockRequirement": { "generator": "starForge", "quantity": 1 },
-      "produces": [
-        { "resource": "darkMatter", "amount": 0.3 },
-        { "resource": "voidEssence", "amount": 0.2 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "voidHarvester", "displayName": "Void Harvester", "description": "Harvests from the void", "category": "void", "icon": "🌑",
+      "baseCost": 800, "costMultiplier": 1.2, "basePPS": 20, "ppsMultiplier": 1.4, "unlockRequirement": { "generator": "starForge", "quantity": 1 },
+      "produces": [{ "resource": "darkMatter", "amount": 0.3 }, { "resource": "voidEssence", "amount": 0.2 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 0.6 }, { "resource": "stardust", "multiplier": 0.5 }, { "resource": "darkMatter", "multiplier": 0.5 }]
     },
     {
-      "codeName": "quantumProcessor",
-      "displayName": "Quantum Processor",
-      "description": "Processes quantum energy",
-      "category": "cosmic",
-      "icon": "⚛️",
-      "baseCost": 3000,
-      "costMultiplier": 1.22,
-      "basePPS": 60,
-      "ppsMultiplier": 1.5,
-      "unlockRequirement": { "generator": "voidHarvester", "quantity": 1 },
-      "produces": [
-        { "resource": "quantumFlux", "amount": 0.5 },
-        { "resource": "cosmicEnergy", "amount": 2 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "quantumProcessor", "displayName": "Quantum Processor", "description": "Processes quantum energy", "category": "cosmic", "icon": "⚛️",
+      "baseCost": 3000, "costMultiplier": 1.22, "basePPS": 60, "ppsMultiplier": 1.5, "unlockRequirement": { "generator": "voidHarvester", "quantity": 1 },
+      "produces": [{ "resource": "quantumFlux", "amount": 0.5 }, { "resource": "cosmicEnergy", "amount": 2 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 0.5 }, { "resource": "darkMatter", "multiplier": 0.5 }, { "resource": "quantumFlux", "multiplier": 0.5 }]
     },
     {
-      "codeName": "nebulaEngine",
-      "displayName": "Nebula Engine",
-      "description": "Harnesses nebula power",
-      "category": "stellar",
-      "icon": "🌫️",
-      "baseCost": 12000,
-      "costMultiplier": 1.25,
-      "basePPS": 200,
-      "ppsMultiplier": 1.6,
-      "unlockRequirement": { "generator": "quantumProcessor", "quantity": 1 },
-      "produces": [
-        { "resource": "nebulaGas", "amount": 1 },
-        { "resource": "stardust", "amount": 3 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "nebulaEngine", "displayName": "Nebula Engine", "description": "Harnesses nebula power", "category": "stellar", "icon": "🌫️",
+      "baseCost": 12000, "costMultiplier": 1.25, "basePPS": 200, "ppsMultiplier": 1.6, "unlockRequirement": { "generator": "quantumProcessor", "quantity": 1 },
+      "produces": [{ "resource": "nebulaGas", "amount": 1 }, { "resource": "stardust", "amount": 3 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 0.4 }, { "resource": "quantumFlux", "multiplier": 0.5 }, { "resource": "nebulaGas", "multiplier": 0.5 }]
     },
     {
-      "codeName": "wormholeExtractor",
-      "displayName": "Wormhole Extractor",
-      "description": "Extracts energy from wormholes",
-      "category": "cosmic",
-      "icon": "🕳️",
-      "baseCost": 50000,
-      "costMultiplier": 1.28,
-      "basePPS": 800,
-      "ppsMultiplier": 1.8,
-      "unlockRequirement": { "generator": "nebulaEngine", "quantity": 1 },
-      "produces": [
-        { "resource": "wormholeEnergy", "amount": 0.5 },
-        { "resource": "quantumFlux", "amount": 2 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "wormholeExtractor", "displayName": "Wormhole Extractor", "description": "Extracts energy from wormholes", "category": "cosmic", "icon": "🕳️",
+      "baseCost": 50000, "costMultiplier": 1.28, "basePPS": 800, "ppsMultiplier": 1.8, "unlockRequirement": { "generator": "nebulaEngine", "quantity": 1 },
+      "produces": [{ "resource": "wormholeEnergy", "amount": 0.5 }, { "resource": "quantumFlux", "amount": 2 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 0.3 }, { "resource": "nebulaGas", "multiplier": 0.5 }, { "resource": "wormholeEnergy", "multiplier": 0.5 }]
     },
     {
-      "codeName": "chrononSynthesizer",
-      "displayName": "Chronon Synthesizer",
-      "description": "Synthesizes time particles",
-      "category": "temporal",
-      "icon": "⏱️",
-      "baseCost": 200000,
-      "costMultiplier": 1.3,
-      "basePPS": 3000,
-      "ppsMultiplier": 2.0,
-      "unlockRequirement": { "generator": "wormholeExtractor", "quantity": 1 },
-      "produces": [
-        { "resource": "chrononParticles", "amount": 0.3 },
-        { "resource": "timeShards", "amount": 10 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "chrononSynthesizer", "displayName": "Chronon Synthesizer", "description": "Synthesizes time particles", "category": "temporal", "icon": "⏱️",
+      "baseCost": 200000, "costMultiplier": 1.3, "basePPS": 3000, "ppsMultiplier": 2.0, "unlockRequirement": { "generator": "wormholeExtractor", "quantity": 1 },
+      "produces": [{ "resource": "chrononParticles", "amount": 0.3 }, { "resource": "timeShards", "amount": 10 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 0.2 }, { "resource": "wormholeEnergy", "multiplier": 0.5 }, { "resource": "chrononParticles", "multiplier": 0.5 }]
     },
     {
-      "codeName": "antimatterReactor",
-      "displayName": "Antimatter Reactor",
-      "description": "Reacts antimatter for energy",
-      "category": "cosmic",
-      "icon": "💥",
-      "baseCost": 1000000,
-      "costMultiplier": 1.32,
-      "basePPS": 12000,
-      "ppsMultiplier": 2.2,
-      "unlockRequirement": { "generator": "chrononSynthesizer", "quantity": 1 },
-      "produces": [
-        { "resource": "antimatter", "amount": 0.1 },
-        { "resource": "plasmaCore", "amount": 0.5 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "antimatterReactor", "displayName": "Antimatter Reactor", "description": "Reacts antimatter for energy", "category": "cosmic", "icon": "💥",
+      "baseCost": 1000000, "costMultiplier": 1.32, "basePPS": 12000, "ppsMultiplier": 2.2, "unlockRequirement": { "generator": "chrononSynthesizer", "quantity": 1 },
+      "produces": [{ "resource": "antimatter", "amount": 0.1 }, { "resource": "plasmaCore", "amount": 0.5 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 0.2 }, { "resource": "chrononParticles", "multiplier": 0.5 }, { "resource": "antimatter", "multiplier": 0.5 }]
     },
     {
-      "codeName": "singularityManipulator",
-      "displayName": "Singularity Manipulator",
-      "description": "Manipulates cosmic singularities",
-      "category": "void",
-      "icon": "🕳️",
-      "baseCost": 5000000,
-      "costMultiplier": 1.35,
-      "basePPS": 50000,
-      "ppsMultiplier": 2.5,
-      "unlockRequirement": { "generator": "antimatterReactor", "quantity": 1 },
-      "produces": [
-        { "resource": "singularityDust", "amount": 0.05 },
-        { "resource": "voidEssence", "amount": 5 }
-      ],
-      "costResources": [
-        { "resource": "timeShards", "multiplier": 1 }
-      ]
+      "codeName": "singularityManipulator", "displayName": "Singularity Manipulator", "description": "Manipulates cosmic singularities", "category": "void", "icon": "🕳️",
+      "baseCost": 5000000, "costMultiplier": 1.35, "basePPS": 50000, "ppsMultiplier": 2.5, "unlockRequirement": { "generator": "antimatterReactor", "quantity": 1 },
+      "produces": [{ "resource": "singularityDust", "amount": 0.05 }, { "resource": "voidEssence", "amount": 5 }],
+      "costResources": [{ "resource": "timeShards", "multiplier": 0.1 }, { "resource": "antimatter", "multiplier": 0.5 }, { "resource": "singularityDust", "multiplier": 0.5 }]
     }
   ]
 }
